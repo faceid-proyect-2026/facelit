@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { register } from '@/services/authService';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { router } from 'expo-router';
@@ -8,10 +9,10 @@ import PasswordField from '@/components/forms/PasswordField';
 import AppButton from '@/components/ui/AppButton';
 import { Colors } from '@/constants/theme';
 
-const ONLY_LETTERS   = /^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ]+(\s[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ]+)*$/;
-const EMAIL_REGEX    = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const ONLY_LETTERS = /^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ]+(\s[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ]+)*$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>_\-+=]).{8,15}$/;
-const ONLY_DIGITS    = /^\d+$/;
+const ONLY_DIGITS = /^\d+$/;
 
 const initialForm = { name: '', lastname: '', document: '', email: '', password: '', confirmPassword: '' };
 
@@ -43,7 +44,7 @@ export default function RegisterScreen() {
 
   const handleCancel = () => { setForm(initialForm); setBirthdate(null); router.replace('/login'); };
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     const newErrors: Record<string, string> = {};
     const t = { ...form, name: form.name.trim(), lastname: form.lastname.trim(), email: form.email.trim() };
 
@@ -95,10 +96,39 @@ export default function RegisterScreen() {
     if (hasRights === null) newErrors.rights = 'Debes responder esta pregunta';
 
     setErrors(newErrors);
+
     if (Object.keys(newErrors).length) return;
 
-    const age = calculateAge(birthdate!);
-    router.push(age >= 18 ? '/teenager-registration' : '/minor-consent');
+    try {
+
+      const response = await register({
+        firstName: form.name,
+        lastName: form.lastname,
+        documentNumber: form.document,
+        email: form.email,
+        password: form.password,
+        birthDate: formatDate(birthdate!)
+      });
+
+      console.log('Usuario registrado:', response);
+
+      const age = calculateAge(birthdate!);
+
+      router.push(
+        age >= 18
+          ? '/teenager-registration'
+          : '/minor-consent'
+      );
+
+    } catch (error) {
+
+      console.error('Error al registrar:', error);
+
+      setErrors({
+        general: 'No se pudo registrar el usuario'
+      });
+
+    }
   };
 
   return (
@@ -128,8 +158,10 @@ export default function RegisterScreen() {
             <input type="date"
               max={new Date().toISOString().split('T')[0]}
               min={`${new Date().getFullYear() - 100}-01-01`}
-              style={{ flex: 1, border: 'none', background: 'transparent', fontSize: 14,
-                color: birthdate ? '#000' : '#888', outline: 'none', width: '100%', cursor: 'pointer' }}
+              style={{
+                flex: 1, border: 'none', background: 'transparent', fontSize: 14,
+                color: birthdate ? '#000' : '#888', outline: 'none', width: '100%', cursor: 'pointer'
+              }}
               onChange={(e) => {
                 if (e.target.value) {
                   setBirthdate(new Date(e.target.value + 'T00:00:00'));

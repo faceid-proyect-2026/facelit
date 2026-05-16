@@ -5,14 +5,17 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import AppButton from '@/components/ui/AppButton';
-import { Colors } from '@/constants/theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '@/contexts/ThemeContext';
+
+const { width } = Dimensions.get('window');
 
 const CODE_MOCK = '264255';
-const INITIAL_TIME = 5 * 60; // 5 minutos
+const INITIAL_TIME = 5 * 60;
 
 function formatTime(seconds: number) {
   const m = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -21,186 +24,336 @@ function formatTime(seconds: number) {
 }
 
 export default function VerifyIdentityScreen() {
+  const { isDark } = useTheme();
+
   const [code, setCode] = useState('');
   const [timeLeft, setTimeLeft] = useState(INITIAL_TIME);
   const [error, setError] = useState('');
 
+  const text = isDark ? '#FFFFFF' : '#000000';
+  const muted = isDark ? '#CAD6C8' : '#1E1E1E';
+  const cardBg = isDark ? '#07120D' : '#FFFFFF';
+  const inputBg = isDark ? 'rgba(255,255,255,0.04)' : '#FFFFFF';
+  const inputBorder = isDark ? 'rgba(255,255,255,0.78)' : '#000000';
+
   useEffect(() => {
     if (timeLeft <= 0) return;
-    const timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000); // ← 1 segundo
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => prev - 1);
+    }, 1000);
+
     return () => clearInterval(timer);
   }, [timeLeft]);
 
   const handleVerify = () => {
-    if (code.length !== 6) { setError('Debe ingresar 6 dígitos'); return; }
-    if (code !== CODE_MOCK) { setError('Token inválido'); return; }
+    if (code.length !== 6) {
+      setError('Debe ingresar 6 dígitos');
+      return;
+    }
+
+    if (code !== CODE_MOCK) {
+      setError('Token inválido');
+      return;
+    }
+
     setError('');
     router.push('/new-password');
   };
 
   const handleResend = () => {
-    setTimeLeft(INITIAL_TIME); // solo reinicia el timer
+    setTimeLeft(INITIAL_TIME);
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <LinearGradient
+      colors={
+        isDark
+          ? ['#000000', '#06170F', '#0B2D17']
+          : ['#F7FFF4', '#E5F7DF', '#1E4C28']
+      }
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.gradient}
+    >
+      <View
+        style={[
+          styles.backgroundArcTop,
+          {
+            backgroundColor: isDark
+              ? 'rgba(101,179,97,0.08)'
+              : 'rgba(20,70,28,0.18)',
+          },
+        ]}
+      />
 
-      {/* Botón solicitar nuevo código */}
-      <TouchableOpacity style={styles.backBtn} onPress={() => router.push('/password-recovery')}>
-        <Text style={styles.backText}>← Solicitar nuevo código</Text>
-      </TouchableOpacity>
+      <View
+        style={[
+          styles.backgroundArcBottom,
+          {
+            backgroundColor: isDark
+              ? 'rgba(101,179,97,0.22)'
+              : 'rgba(101,179,97,0.28)',
+          },
+        ]}
+      />
 
-      {/* Ícono reloj */}
-      <View style={styles.clockCircle}>
-        <Text style={styles.clockIcon}>🕐</Text>
-      </View>
+      <SafeAreaView style={styles.safe}>
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: cardBg,
+              shadowColor: isDark ? '#000000' : '#1C3A1D',
+            },
+          ]}
+        >
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => router.push('/password-recovery')}
+          >
+            <Text style={styles.backText}>
+              ← Solicitar nuevo código
+            </Text>
+          </TouchableOpacity>
 
-      {/* Título */}
-      <Text style={styles.title}>Verifica tu identidad</Text>
+          <View style={styles.clockCircle}>
+            <Text style={styles.clockIcon}>🕐</Text>
+          </View>
 
-      {/* Subtítulo + email */}
-      <Text style={styles.subtitle}>Se a enviado un código de 6 dígitos a</Text>
-      <Text style={styles.email}>correo@ejemplo.com</Text>
+          <Text style={[styles.title, { color: text }]}>
+            Verifica tu identidad
+          </Text>
 
-      {/* Temporizador */}
-      <View style={styles.timerBadge}>
-        <Text style={styles.timerText}>⏰  Tiempo restante {formatTime(timeLeft)}</Text>
-      </View>
+          <Text style={[styles.subtitle, { color: muted }]}>
+            Se ha enviado un código de 6 dígitos a
+          </Text>
 
-      {/* Reenviar código */}
-      <TouchableOpacity style={styles.resendBtn} onPress={handleResend}>
-        <Text style={styles.resendText}>Reenviar código</Text>
-      </TouchableOpacity>
+          <Text style={styles.email}>correo@ejemplo.com</Text>
 
-      {/* Input código */}
-      <View style={styles.inputWrapper}>
-        <Text style={styles.inputLabel}>Código de verificación</Text>
-        <TextInput
-          style={[styles.codeInput, error ? styles.codeInputError : null]}
-          value={code}
-          onChangeText={(v) => { setCode(v.replace(/\D/g, '')); setError(''); }}
-          placeholder="XXXXXX"
-          placeholderTextColor="rgba(255,255,255,0.4)"
-          keyboardType="number-pad"
-          maxLength={6}
-        />
-        {error ? <Text style={styles.errorText}>{error}</Text> : null}
-        <Text style={styles.hint}>Ingrese el código de 6 dígitos</Text>
-      </View>
+          <View style={styles.timerBadge}>
+            <Text style={styles.timerText}>
+              ⏰ Tiempo restante {formatTime(timeLeft)}
+            </Text>
+          </View>
 
-      {/* Botón verificar */}
-      <AppButton title="Verificar código" onPress={handleVerify} />
+          <TouchableOpacity
+            style={styles.resendBtn}
+            onPress={handleResend}
+          >
+            <Text style={styles.resendText}>
+              Reenviar código
+            </Text>
+          </TouchableOpacity>
 
-    </SafeAreaView>
+          <Text style={[styles.inputLabel, { color: text }]}>
+            Código de verificación
+          </Text>
+
+          <TextInput
+            style={[
+              styles.codeInput,
+              {
+                color: text,
+                backgroundColor: inputBg,
+                borderColor: error ? '#D92027' : inputBorder,
+              },
+            ]}
+            value={code}
+            onChangeText={(v) => {
+              setCode(v.replace(/\D/g, ''));
+              setError('');
+            }}
+            placeholder="XXXXXX"
+            placeholderTextColor={isDark ? '#AEB6C2' : '#7A7A7A'}
+            keyboardType="number-pad"
+            maxLength={6}
+          />
+
+          {error ? (
+            <Text style={styles.errorText}>{error}</Text>
+          ) : null}
+
+          <Text style={[styles.hint, { color: muted }]}>
+            Ingrese el código de 6 dígitos
+          </Text>
+
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleVerify}
+          >
+            <LinearGradient
+              colors={['#72C96D', '#65B361', '#4FA14B']}
+              style={styles.buttonGradient}
+            >
+              <Text style={styles.buttonText}>
+                Verificar código
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  gradient: {
+    flex: 1,
+  },
+
   safe: {
     flex: 1,
-    backgroundColor: Colors.background,
-    paddingHorizontal: 24,
-    paddingTop: 16,
+    justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 20,
   },
+
+  backgroundArcTop: {
+    position: 'absolute',
+    width: 300,
+    height: 420,
+    right: -120,
+    top: -90,
+    borderRadius: 200,
+  },
+
+  backgroundArcBottom: {
+    position: 'absolute',
+    width: 420,
+    height: 220,
+    left: -120,
+    bottom: -30,
+    borderRadius: 180,
+  },
+
+  card: {
+    width: '100%',
+    maxWidth: 460,
+    borderRadius: 26,
+    paddingHorizontal: 24,
+    paddingVertical: 28,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
+    elevation: 8,
+  },
+
   backBtn: {
-    alignSelf: 'flex-start',
-    marginBottom: 32,
+    marginBottom: 18,
   },
+
   backText: {
-    color: Colors.white,
-    fontSize: 16,
+    color: '#65B361',
+    fontSize: 14,
+    fontWeight: '700',
   },
+
   clockCircle: {
-    width: 130,
-    height: 130,
-    borderRadius: 65,
-    borderWidth: 6,
-    borderColor: Colors.white,
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    borderWidth: 4,
+    borderColor: '#65B361',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 24,
+    alignSelf: 'center',
+    marginBottom: 18,
   },
+
   clockIcon: {
-    fontSize: 70,
+    fontSize: 54,
   },
+
   title: {
     fontSize: 28,
-    fontWeight: '700',
-    color: Colors.white,
+    fontWeight: '900',
     textAlign: 'center',
     marginBottom: 8,
   },
+
   subtitle: {
-    fontSize: 13,
-    color: Colors.text.muted,
+    fontSize: 14,
     textAlign: 'center',
   },
+
   email: {
-    fontSize: 13,
-    color: Colors.white,
-    textDecorationLine: 'underline',
-    marginBottom: 20,
-  },
-  timerBadge: {
-    backgroundColor: 'rgba(180,90,20,0.85)',
-    borderRadius: 8,
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    marginBottom: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  timerText: {
-    color: Colors.white,
     fontSize: 14,
-  },
-  resendBtn: {
-    backgroundColor: 'rgba(150,130,20,0.7)',
-    borderRadius: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 32,
-    marginBottom: 32,
-  },
-  resendText: {
-    color: Colors.white,
-    fontSize: 14,
-  },
-  inputWrapper: {
-    width: '100%',
-    maxWidth: 600,
-    marginBottom: 8,
-  },
-  inputLabel: {
-    color: Colors.white,
-    fontWeight: '700',
-    fontSize: 15,
-    marginBottom: 8,
-  },
-  codeInput: {
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    color: Colors.white,
-    fontSize: 20,
-    letterSpacing: 8,
     textAlign: 'center',
-    paddingVertical: 16,
-    marginBottom: 6,
+    color: '#65B361',
+    textDecorationLine: 'underline',
+    marginBottom: 18,
+    marginTop: 4,
+    fontWeight: '700',
   },
-  codeInputError: {
-    borderColor: Colors.danger,
+
+  timerBadge: {
+    backgroundColor: '#E89B2C',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    alignSelf: 'center',
+    marginBottom: 12,
   },
+
+  timerText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 13,
+  },
+
+  resendBtn: {
+    alignSelf: 'center',
+    marginBottom: 24,
+  },
+
+  resendText: {
+    color: '#65B361',
+    fontWeight: '700',
+    textDecorationLine: 'underline',
+  },
+
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '800',
+    marginBottom: 8,
+  },
+
+  codeInput: {
+    borderWidth: 1.2,
+    borderRadius: 14,
+    paddingVertical: 14,
+    textAlign: 'center',
+    fontSize: 22,
+    letterSpacing: 8,
+  },
+
   errorText: {
-    color: 'red',
-    fontSize: 13,
+    color: '#D92027',
+    fontSize: 12,
     marginTop: 6,
   },
+
   hint: {
-    color: 'rgba(255,255,255,0.7)',
-    fontSize: 13,
-    marginTop: 6,
+    fontSize: 12,
+    marginTop: 8,
+    marginBottom: 24,
+  },
+
+  button: {
+    width: '100%',
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+
+  buttonGradient: {
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '700',
   },
 });

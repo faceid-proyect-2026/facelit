@@ -1,95 +1,192 @@
-import { View, Text, Image, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  Dimensions,
+} from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AppButton from '@/components/ui/AppButton';
-import { Colors } from '@/constants/theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import { TouchableOpacity } from 'react-native';
+import { useTheme } from '@/contexts/ThemeContext';
+
+const { width } = Dimensions.get('window');
 
 export default function TokenSentScreen() {
+  const { isDark } = useTheme();
+
+  const text = isDark ? '#FFFFFF' : '#000000';
+  const muted = isDark ? '#CAD6C8' : '#1E1E1E';
+  const cardBg = isDark ? '#07120D' : '#FFFFFF';
+
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.card}>
+    <LinearGradient
+      colors={
+        isDark
+          ? ['#000000', '#06170F', '#0B2D17']
+          : ['#F7FFF4', '#E5F7DF', '#1E4C28']
+      }
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.gradient}
+    >
+      <View
+        style={[
+          styles.backgroundArcTop,
+          {
+            backgroundColor: isDark
+              ? 'rgba(101,179,97,0.08)'
+              : 'rgba(20,70,28,0.18)',
+          },
+        ]}
+      />
 
-        {/* Cabecera verde con imagen centrada */}
-        <View style={styles.header}>
-          <Image
-            source={require('@/assets/images/token.png')}
-            style={styles.imagen}
-            resizeMode="contain"
-          />
+      <View
+        style={[
+          styles.backgroundArcBottom,
+          {
+            backgroundColor: isDark
+              ? 'rgba(101,179,97,0.22)'
+              : 'rgba(101,179,97,0.28)',
+          },
+        ]}
+      />
+
+      <SafeAreaView style={styles.safe}>
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: cardBg,
+              shadowColor: isDark ? '#000000' : '#1C3A1D',
+            },
+          ]}
+        >
+          <View style={styles.header}>
+            <Image
+              source={require('@/assets/images/token.png')}
+              style={styles.image}
+              resizeMode="contain"
+            />
+          </View>
+
+          <View style={styles.body}>
+            <Text style={[styles.title, { color: text }]}>
+              Código enviado
+            </Text>
+
+            <Text style={[styles.subtitle, { color: muted }]}>
+              Te enviamos un código de verificación a tu correo.
+              Revísalo para continuar.
+            </Text>
+
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => router.push('/verify-identity')}
+            >
+              <LinearGradient
+                colors={['#72C96D', '#65B361', '#4FA14B']}
+                style={styles.buttonGradient}
+              >
+                <Text style={styles.buttonText}>
+                  Entendido
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
         </View>
-
-        <View style={styles.body}>
-          {/* Título */}
-          <Text style={styles.title}>Código enviado</Text>
-
-          {/* Subtítulo */}
-          <Text style={styles.subtitle}>
-            Te enviamos un código de verificación a tu correo. Revisalo para continuar.
-          </Text>
-
-          {/* Botón Entendido */}
-          <AppButton
-            title="Entendido"
-            onPress={() => router.push('/verify-identity')}
-            style={styles.btn}
-            fullWidth={false}
-          />
-        </View>
-
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  gradient: {
+    flex: 1,
+  },
+
   safe: {
     flex: 1,
-    backgroundColor: Colors.background,
-    alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 24,
+    alignItems: 'center',
+    paddingHorizontal: 20,
   },
+
+  backgroundArcTop: {
+    position: 'absolute',
+    width: 300,
+    height: 420,
+    right: -120,
+    top: -90,
+    borderRadius: 200,
+  },
+
+  backgroundArcBottom: {
+    position: 'absolute',
+    width: 420,
+    height: 220,
+    left: -120,
+    bottom: -30,
+    borderRadius: 180,
+  },
+
   card: {
-    backgroundColor: Colors.white,
-    borderRadius: 16,
     width: '100%',
-    maxWidth: 400,
+    maxWidth: 420,
+    borderRadius: 26,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
     elevation: 8,
   },
+
   header: {
-    backgroundColor: Colors.primary,
-    paddingVertical: 36,
+    backgroundColor: '#65B361',
+    paddingVertical: 32,
     alignItems: 'center',
   },
-  imagen: {
-    width: 100,
-    height: 100,
+
+  image: {
+    width: 95,
+    height: 95,
   },
+
   body: {
-    padding: 32,
+    paddingHorizontal: 28,
+    paddingVertical: 30,
     alignItems: 'center',
   },
+
   title: {
-    fontSize: 26,                                       // ← igual que web
-    fontWeight: '700',
-    color: Colors.black,
-    marginBottom: 15,                                   // ← igual que web
+    fontSize: 28,
+    fontWeight: '900',
     textAlign: 'center',
+    marginBottom: 12,
   },
+
   subtitle: {
-    fontSize: 13,
-    color: '#111010',                                   // ← igual que web
+    fontSize: 14,
+    lineHeight: 22,
     textAlign: 'center',
-    lineHeight: 21,
-    marginBottom: 24,                                   // ← igual que web
+    marginBottom: 26,
   },
-  btn: {
-    paddingHorizontal: 36,
-    width: '55%',                                       // ← igual que web
+
+  button: {
+    width: '70%',
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+
+  buttonGradient: {
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '700',
   },
 });

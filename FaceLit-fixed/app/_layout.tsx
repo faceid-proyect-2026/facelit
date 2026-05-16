@@ -1,11 +1,22 @@
+// ─────────────────────────────────────────────
+//  app/_layout.tsx
+//  Root layout con ThemeProvider + I18nProvider
+//  Los Stack.Screen y rutas son exactamente los mismos
+// ─────────────────────────────────────────────
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { View, StyleSheet } from 'react-native';
 
-export default function RootLayout() {
+import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
+import { I18nProvider } from '@/contexts/I18nContext';
+
+/** Inner layout: accede al tema ya disponible en el árbol */
+function RootLayoutInner() {
+  const { theme } = useTheme();
+
   return (
-    <View style={styles.root}>
-      <StatusBar style="light" />
+    <View style={[styles.root, { backgroundColor: theme.background }]}>
+      <StatusBar style={theme.statusBar} />
       <Stack
         screenOptions={{
           headerShown: false,
@@ -13,6 +24,7 @@ export default function RootLayout() {
           animation: 'slide_from_right',
         }}
       >
+        {/* ── Rutas existentes — SIN cambios ── */}
         <Stack.Screen name="index" />
         <Stack.Screen name="login" />
         <Stack.Screen name="register" />
@@ -31,9 +43,19 @@ export default function RootLayout() {
   );
 }
 
+/** Root layout: provee tema e idioma a toda la app */
+export default function RootLayout() {
+  return (
+    <ThemeProvider>
+      <I18nProvider>
+        <RootLayoutInner />
+      </I18nProvider>
+    </ThemeProvider>
+  );
+}
+
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#050505',
   },
 });

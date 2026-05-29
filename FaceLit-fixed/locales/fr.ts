@@ -77,6 +77,26 @@ const fr = {
     accept: 'Accepter',
     error: 'Erreur',
   },
+  facialReg: {
+    title: 'Enregistrement facial',
+    subtitle: 'Nous devons capturer votre visage pour compléter l inscription.',
+    tapToCapture: 'Appuyez pour ouvrir la caméra',
+    captured: 'Capture réussie',
+    capturedHint: 'Appuyez à nouveau pour reprendre',
+    instructions: 'Instructions',
+    instr1: 'Gardez votre visage centré dans le cadre',
+    instr2: 'Retirez lunettes de soleil ou accessoires',
+    instr3: 'Assurez-vous d avoir un bon éclairage',
+    instr4: 'Regardez directement la caméra',
+    captureBtn: 'Capturer le visage',
+    retake: 'Reprendre la capture',
+    finish: 'Terminer l inscription',
+    alertTitle: 'Capture faciale',
+    alertMsg: 'La caméra s ouvrira pour capturer votre visage.',
+    simulate: 'Simuler la capture',
+    warningTitle: 'Attention',
+    warningMsg: 'Vous devez capturer votre visage pour continuer.',
+  },
 } as const;
 
 export default fr;

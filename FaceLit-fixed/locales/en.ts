@@ -77,6 +77,26 @@ const en = {
     accept: 'Accept',
     error: 'Error',
   },
+  facialReg: {
+    title: 'Facial registration',
+    subtitle: 'We need to capture your face to complete registration. Make sure you are in a well-lit place.',
+    tapToCapture: 'Tap to open the camera',
+    captured: 'Capture successful',
+    capturedHint: 'Tap again to retake',
+    instructions: 'Instructions',
+    instr1: 'Keep your face centered in the frame',
+    instr2: 'Remove sunglasses or accessories',
+    instr3: 'Make sure you have good lighting',
+    instr4: 'Look directly at the camera',
+    captureBtn: 'Capture face',
+    retake: 'Retake capture',
+    finish: 'Finish registration',
+    alertTitle: 'Facial capture',
+    alertMsg: 'The camera will open to capture your face.',
+    simulate: 'Simulate capture',
+    warningTitle: 'Attention',
+    warningMsg: 'You must capture your face to continue.',
+  },
 } as const;
 
 export default en;

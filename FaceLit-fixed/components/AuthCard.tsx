@@ -1,8 +1,20 @@
+// ─────────────────────────────────────────────
+//  components/AuthCard.tsx
+//  Contenedor base para pantallas de autenticación
+//  Gradiente y fondo respetan el tema activo
+// ─────────────────────────────────────────────
 import React from 'react';
-import { View, ScrollView, KeyboardAvoidingView, Platform, StyleSheet, ViewStyle } from 'react-native';
+import {
+  View,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  ViewStyle,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Colors } from '@/constants/theme';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface AuthCardProps {
   children: React.ReactNode;
@@ -10,12 +22,31 @@ interface AuthCardProps {
   style?: ViewStyle;
 }
 
-export default function AuthCard({ children, scrollable = true, style }: AuthCardProps) {
-  const content = <View style={[styles.card, style]}>{children}</View>;
+export default function AuthCard({
+  children,
+  scrollable = true,
+  style,
+}: AuthCardProps) {
+  const { theme } = useTheme();
+
+  const content = (
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: theme.card,
+          shadowColor: theme.cardShadow,
+        },
+        style,
+      ]}
+    >
+      {children}
+    </View>
+  );
 
   return (
     <LinearGradient
-      colors={['#050505', '#0F2A1D', '#1F5A3A']}
+      colors={theme.gradientColors}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.gradient}
@@ -54,12 +85,10 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   card: {
-    backgroundColor: Colors.card,
     borderRadius: 16,
     padding: 24,
     width: '92%',
     maxWidth: 440,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

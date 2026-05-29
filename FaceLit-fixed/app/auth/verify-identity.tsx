@@ -58,7 +58,7 @@ export default function VerifyIdentityScreen() {
     }
 
     setError('');
-    router.push('/new-password');
+    router.push('/auth/new-password');
   };
 
   const handleResend = () => {
@@ -110,7 +110,7 @@ export default function VerifyIdentityScreen() {
         >
           <TouchableOpacity
             style={styles.backBtn}
-            onPress={() => router.push('/password-recovery')}
+            onPress={() => router.push('/auth/password-recovery')}
           >
             <Text style={styles.backText}>
               ← Solicitar nuevo código

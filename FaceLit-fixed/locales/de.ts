@@ -77,6 +77,26 @@ const de = {
     accept: 'Akzeptieren',
     error: 'Fehler',
   },
+  facialReg: {
+    title: 'Gesichtsregistrierung',
+    subtitle: 'Wir müssen Ihr Gesicht erfassen, um die Registrierung abzuschließen.',
+    tapToCapture: 'Tippen um die Kamera zu öffnen',
+    captured: 'Erfassung erfolgreich',
+    capturedHint: 'Tippen Sie erneut, um neu zu erfassen',
+    instructions: 'Anweisungen',
+    instr1: 'Halten Sie Ihr Gesicht in der Mitte',
+    instr2: 'Entfernen Sie Sonnenbrillen oder Accessoires',
+    instr3: 'Sorgen Sie für gute Beleuchtung',
+    instr4: 'Schauen Sie direkt in die Kamera',
+    captureBtn: 'Gesicht erfassen',
+    retake: 'Erneut erfassen',
+    finish: 'Registrierung abschließen',
+    alertTitle: 'Gesichtserfassung',
+    alertMsg: 'Die Kamera wird geöffnet.',
+    simulate: 'Erfassung simulieren',
+    warningTitle: 'Achtung',
+    warningMsg: 'Sie müssen Ihr Gesicht erfassen.',
+  },
 } as const;
 
 export default de;

@@ -1,36 +1,66 @@
+// ─────────────────────────────────────────────
+//  components/forms/PasswordField.tsx
+//  Campo de contraseña con toggle de visibilidad
+//  y soporte completo de tema claro/oscuro
+// ─────────────────────────────────────────────
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, TextInputProps } from 'react-native';
-import { Colors } from '@/constants/theme';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  TextInputProps,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface PasswordFieldProps extends Omit<TextInputProps, 'secureTextEntry'> {
   label?: string;
   error?: string;
-  labelColor?: string;
 }
 
 export default function PasswordField({
-  label = 'Contraseña',
+  label,
   error,
   style,
-  labelColor = Colors.black,
   ...props
 }: PasswordFieldProps) {
+  const { theme } = useTheme();
   const [visible, setVisible] = useState(false);
 
   return (
     <View style={styles.wrapper}>
-      {label ? <Text style={[styles.label, { color: labelColor }]}>{label}</Text> : null}
-      <View style={[styles.row, error ? styles.rowError : null]}>
+      {label ? (
+        <Text style={[styles.label, { color: theme.text }]}>{label}</Text>
+      ) : null}
+      <View
+        style={[
+          styles.row,
+          {
+            backgroundColor: theme.inputBg,
+            borderColor: error ? '#961414' : theme.inputBorder,
+          },
+        ]}
+      >
         <TextInput
-          style={[styles.input, style]}
+          style={[styles.input, { color: theme.inputText }, style]}
           secureTextEntry={!visible}
-          placeholderTextColor={Colors.text.hint}
+          placeholderTextColor={theme.inputPlaceholder}
           autoCapitalize="none"
           autoCorrect={false}
           {...props}
         />
-        <TouchableOpacity onPress={() => setVisible(!visible)} style={styles.eye}>
-          <Text style={styles.eyeText}>{visible ? '👀' : '👁️'}</Text>
+        <TouchableOpacity
+          onPress={() => setVisible(!visible)}
+          style={styles.eye}
+          activeOpacity={0.7}
+        >
+          <Ionicons
+            name={visible ? 'eye-off-outline' : 'eye-outline'}
+            size={20}
+            color={theme.textMuted}
+          />
         </TouchableOpacity>
       </View>
       {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -45,13 +75,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.inputBorder,
     borderRadius: 8,
-    backgroundColor: '#FFFFFF',
   },
-  rowError: { borderColor: Colors.inputBorderError },
-  input: { flex: 1, paddingHorizontal: 12, paddingVertical: 11, fontSize: 14, color: Colors.black },
+  input: {
+    flex: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 11,
+    fontSize: 14,
+  },
   eye: { paddingHorizontal: 12 },
-  eyeText: { fontSize: 16 },
-  error: { color: Colors.danger, fontSize: 11, marginTop: 4 },
+  error: { color: '#961414', fontSize: 11, marginTop: 4 },
 });

@@ -377,7 +377,7 @@ export default function LoginScreen() {
                   </Text>
 
                   <NavLink
-                    href="/privacy-notice"
+                    href="/auth/privacy-notice"
                     label="aviso de privacidad"
                   />
 
@@ -418,7 +418,7 @@ export default function LoginScreen() {
 
               <View style={styles.links}>
                 <NavLink
-                  href="/password-recovery"
+                  href="/auth/password-recovery"
                   label="¿Olvidaste tu contraseña?"
                 />
 
@@ -433,7 +433,7 @@ export default function LoginScreen() {
                   </Text>
 
                   <NavLink
-                    href="/register"
+                    href="/auth/register"
                     label="Regístrate aquí"
                   />
                 </View>

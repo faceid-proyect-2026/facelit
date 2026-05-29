@@ -87,6 +87,26 @@ const es = {
     accept: 'Aceptar',
     error: 'Error',
   },
+  facialReg: {
+    title: 'Registro facial',
+    subtitle: 'Necesitamos capturar tu rostro para completar el registro. Asegúrate de estar en un lugar bien iluminado.',
+    tapToCapture: 'Toca para abrir la cámara',
+    captured: 'Captura exitosa',
+    capturedHint: 'Toca de nuevo para repetir la captura',
+    instructions: 'Instrucciones',
+    instr1: 'Mantén el rostro centrado en el encuadre',
+    instr2: 'Retira lentes de sol o accesorios',
+    instr3: 'Asegúrate de tener buena iluminación',
+    instr4: 'Mira directamente a la cámara',
+    captureBtn: 'Capturar rostro',
+    retake: 'Volver a capturar',
+    finish: 'Finalizar registro',
+    alertTitle: 'Captura facial',
+    alertMsg: 'Aquí se abrirá la cámara para capturar tu rostro.',
+    simulate: 'Simular captura',
+    warningTitle: 'Atención',
+    warningMsg: 'Debes capturar tu rostro para continuar.',
+  },
 } as const;
 
 export default es;

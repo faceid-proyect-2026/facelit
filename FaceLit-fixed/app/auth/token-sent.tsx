@@ -83,7 +83,7 @@ export default function TokenSentScreen() {
 
             <TouchableOpacity
               style={styles.button}
-              onPress={() => router.push('/verify-identity')}
+              onPress={() => router.push('/auth/verify-identity')}
             >
               <LinearGradient
                 colors={['#72C96D', '#65B361', '#4FA14B']}

@@ -65,7 +65,7 @@ export default function LandingScreen() {
               <Text style={[styles.heroText, { color: body }]}>{t('landing.description')}</Text>
 
               <View style={styles.ctaRow}>
-                <TouchableOpacity onPress={() => router.push('/register')} activeOpacity={0.85} style={styles.primaryBtnWrap}>
+                <TouchableOpacity onPress={() => router.push('/auth/register')} activeOpacity={0.85} style={styles.primaryBtnWrap}>
                   <LinearGradient
                     colors={['#72C96D', '#65B361', '#4A9146']}
                     start={{ x: 0, y: 0 }}
@@ -77,7 +77,7 @@ export default function LandingScreen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  onPress={() => router.push('/login')}
+                  onPress={() => router.push('/auth/login')}
                   activeOpacity={0.85}
                   style={[styles.secondaryBtn, { borderColor: border, backgroundColor: isDark ? 'rgba(101,179,97,0.06)' : '#FFFFFF' }]}
                 >
@@ -159,10 +159,10 @@ export default function LandingScreen() {
           <View style={styles.footer}>
             <Text style={[styles.footerText, { color: muted }]}>FaceLit (c) 2026</Text>
             <View style={styles.footerLinks}>
-              <TouchableOpacity onPress={() => router.push('/privacy-notice')}>
+              <TouchableOpacity onPress={() => router.push('/auth/privacy-notice')}>
                 <Text style={[styles.footerLink, { color: theme.primary }]}>{t('landing.footerPrivacy')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => router.push('/rights')}>
+              <TouchableOpacity onPress={() => router.push('/auth/rights')}>
                 <Text style={[styles.footerLink, { color: theme.primary }]}>{t('landing.footerRights')}</Text>
               </TouchableOpacity>
             </View>

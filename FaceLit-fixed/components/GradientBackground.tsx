@@ -1,15 +1,23 @@
+// ─────────────────────────────────────────────
+//  components/GradientBackground.tsx
+//  Fondo degradado que respeta el tema activo
+// ─────────────────────────────────────────────
+import React from 'react';
 import { StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface GradientBackgroundProps {
   children: React.ReactNode;
 }
 
 export default function GradientBackground({ children }: GradientBackgroundProps) {
+  const { theme } = useTheme();
+
   return (
     <LinearGradient
-      colors={['#050505', '#0F2A1D', '#1F5A3A']}
+      colors={theme.gradientColors}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.gradient}

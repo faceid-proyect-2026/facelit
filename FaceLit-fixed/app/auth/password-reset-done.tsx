@@ -53,7 +53,7 @@ export default function PasswordResetDoneScreen() {
             <View style={styles.btnWrapper}>
               <AppButton
                 title="Ir al inicio de sesión"
-                onPress={() => router.replace('/login')}
+                onPress={() => router.replace('/auth/login')}
                 fullWidth={false}
                 style={styles.btn}
               />

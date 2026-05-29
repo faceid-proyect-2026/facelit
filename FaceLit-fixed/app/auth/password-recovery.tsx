@@ -54,7 +54,7 @@ export default function PasswordRecoveryScreen() {
     }
 
     setError('');
-    router.push('/token-sent');
+    router.push('/auth/token-sent');
   };
 
   return (
@@ -179,7 +179,7 @@ export default function PasswordRecoveryScreen() {
 
                 <TouchableOpacity
                   style={styles.secondaryBtn}
-                  onPress={() => router.replace('/login')}
+                  onPress={() => router.replace('/auth/login')}
                 >
                   <Text style={styles.secondaryText}>Cancelar</Text>
                 </TouchableOpacity>

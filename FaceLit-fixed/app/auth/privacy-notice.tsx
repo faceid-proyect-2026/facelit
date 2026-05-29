@@ -87,7 +87,7 @@ export default function PrivacyNoticeScreen() {
           >
             <TouchableOpacity
               style={styles.closeBtn}
-              onPress={() => router.replace('/login')}
+              onPress={() => router.replace('/auth/login')}
             >
               <Text style={[styles.closeText, { color: text }]}>✕</Text>
             </TouchableOpacity>

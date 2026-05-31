@@ -247,7 +247,6 @@ export default function RegisterScreen() {
         <KeyboardAvoidingView style={s.kav} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
-            <Image source={require('@/assets/images/logo.png')} style={s.logo} resizeMode="contain" />
 
             <View style={[s.card, isWide && s.cardWide, { backgroundColor: cardBg, borderColor: cardBorder }]}>
 
@@ -255,8 +254,8 @@ export default function RegisterScreen() {
               <Text style={[s.subtitle, { color: muted }]}>Completa tu información para crear tu cuenta en FaceLit</Text>
 
               <Section icon="person-outline" label="Datos personales" {...sectionColors} />
-              <InputRow fieldKey="name" label="Nombre" icon="person-outline" placeholder="Juan" value={form.name} onChange={handleName} error={errors.name} {...rowColors} />
-              <InputRow fieldKey="lastname" label="Apellido" icon="people-outline" placeholder="Pérez" value={form.lastname} onChange={handleLastname} error={errors.lastname} {...rowColors} />
+              <InputRow fieldKey="name" label="Nombre" icon="person-outline" placeholder="Nombre completo" value={form.name} onChange={handleName} error={errors.name} {...rowColors} />
+              <InputRow fieldKey="lastname" label="Apellido" icon="people-outline" placeholder="Apellido completo" value={form.lastname} onChange={handleLastname} error={errors.lastname} {...rowColors} />
 
               {/* Tipo de identidad */}
               <View style={s.fieldGroup}>
@@ -416,11 +415,8 @@ export default function RegisterScreen() {
                 <View style={s.rightsHeader}>
                   <Ionicons name="information-circle-outline" size={16} color={theme.primary} />
                   <Text style={[s.rightsQ, { color: text }]}>
-                    ¿Ha leído y acepta sus{' '}
-                    <Text style={{ color: linkColor, textDecorationLine: 'underline', fontWeight: '700' }} onPress={() => router.push('/auth/rights')}>
-                      derechos de acceso, actualización y rectificación
-                    </Text>
-                    {' '}de datos?
+                    ¿Ha leído y acepta sus derechos de acceso, actualización y rectificación de datos?{' '}
+
                   </Text>
                 </View>
                 <View style={s.rightsButtons}>
@@ -457,7 +453,7 @@ export default function RegisterScreen() {
 
               <View style={s.footer}>
                 <Text style={[s.footerText, { color: muted }]}>¿Ya tienes cuenta? </Text>
-                <NavLink href="/auth/login" label="Inicia sesión aquí" />
+                <NavLink href="/auth/login" label="Inicia sesión" />
               </View>
 
             </View>

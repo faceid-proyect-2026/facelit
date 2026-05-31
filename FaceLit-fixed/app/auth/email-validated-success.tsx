@@ -8,23 +8,20 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/ThemeContext';
 import AppButton from '@/components/ui/AppButton';
 
 export default function EmailValidatedSuccessScreen() {
   const { theme, isDark } = useTheme();
-  const { t } = useTranslation();
   const { email } = useLocalSearchParams<{ email: string }>();
 
-  const text     = isDark ? '#FFFFFF' : '#111111';
-  const muted    = isDark ? '#A8BCA6' : '#555555';
-  const cardBg   = isDark ? '#07120D' : '#FFFFFF';
+  const text   = isDark ? '#FFFFFF' : '#111111';
+  const muted  = isDark ? '#A8BCA6' : '#555555';
+  const cardBg = isDark ? '#07120D' : '#FFFFFF';
 
   const handleContinue = () => {
-    // Vuelve a register indicando que el email ya fue validado
     router.push({
-      pathname: '/auth/register',
+      pathname: '/auth/register' as any,
       params: { validatedEmail: email },
     });
   };
@@ -42,18 +39,21 @@ export default function EmailValidatedSuccessScreen() {
         <View style={s.container}>
           <View style={[s.card, { backgroundColor: cardBg, shadowColor: isDark ? '#000' : '#1C3A1D' }]}>
 
-            {/* Círculo con check animado */}
+            {/* Círculo con check */}
             <View style={[s.iconCircle, { borderColor: theme.primary }]}>
               <Ionicons name="checkmark-circle" size={72} color={theme.primary} />
             </View>
 
             {/* Título */}
             <Text style={[s.title, { color: text }]}>
-              {t('emailValidatedSuccess.title')}
+              ¡Correo verificado!
             </Text>
 
-            {/* Email verificado */}
-            <View style={[s.emailBadge, { backgroundColor: isDark ? 'rgba(101,179,97,0.10)' : 'rgba(101,179,97,0.08)', borderColor: theme.primary }]}>
+            {/* Badge con el email */}
+            <View style={[s.emailBadge, {
+              backgroundColor: isDark ? 'rgba(101,179,97,0.10)' : 'rgba(101,179,97,0.08)',
+              borderColor: theme.primary,
+            }]}>
               <Ionicons name="mail-open-outline" size={16} color={theme.primary} />
               <Text style={[s.emailText, { color: theme.primary }]}>
                 {email || 'correo@ejemplo.com'}
@@ -62,15 +62,16 @@ export default function EmailValidatedSuccessScreen() {
 
             {/* Subtítulo */}
             <Text style={[s.subtitle, { color: muted }]}>
-              {t('emailValidatedSuccess.subtitle')}
+              Tu correo ha sido verificado correctamente.{'\n'}
+              Puedes continuar con el registro.
             </Text>
 
             {/* Divider */}
             <View style={[s.divider, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' }]} />
 
-            {/* Botón continuar */}
+            {/* Botón */}
             <AppButton
-              title={t('emailValidatedSuccess.continue')}
+              title="Continuar registro"
               onPress={handleContinue}
               style={s.btn}
             />

@@ -96,11 +96,6 @@ export default function PasswordRecoveryScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
           <ScrollView contentContainerStyle={styles.scroll}>
-            <Image
-              source={require('@/assets/images/logo.png')}
-              style={styles.logo}
-              resizeMode="contain"
-            />
 
             <View
               style={[

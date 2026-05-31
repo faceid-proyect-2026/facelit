@@ -5,15 +5,11 @@
 //  Al verificar exitosamente → email-validated-success
 // ─────────────────────────────────────────────
 import { useState, useEffect } from 'react';
-import {
-  View, Text, TextInput, TouchableOpacity,
-  StyleSheet, ScrollView,
-} from 'react-native';
+import {View, Text, TextInput, TouchableOpacity,StyleSheet, ScrollView,} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/ThemeContext';
 
 // Código mock para demo — en producción viene del backend
@@ -28,7 +24,6 @@ function formatTime(seconds: number): string {
 
 export default function EmailValidationScreen() {
   const { theme, isDark } = useTheme();
-  const { t } = useTranslation();
 
   // Recibe el email desde register via params
   const { email } = useLocalSearchParams<{ email: string }>();
@@ -51,24 +46,22 @@ export default function EmailValidationScreen() {
     return () => clearInterval(timer);
   }, [timeLeft]);
 
-  // Color del badge del timer según tiempo restante
   const timerColor = timeLeft > 60 ? '#E89B2C' : '#D92027';
 
   const handleVerify = () => {
     if (expired) {
-      setError(t('emailValidation.errorExpired'));
+      setError('El código ha expirado. Solicita uno nuevo.');
       return;
     }
     if (code.length !== 6) {
-      setError(t('emailValidation.errorLength'));
+      setError('Debes ingresar los 6 dígitos del código.');
       return;
     }
     if (code !== CODE_MOCK) {
-      setError(t('emailValidation.errorInvalid'));
+      setError('Código incorrecto. Intenta de nuevo.');
       return;
     }
     setError('');
-    // Navega a pantalla de éxito pasando el email para que vuelva a register
     router.push({ pathname: '/auth/email-validated-success' as any, params: { email } });
   };
 
@@ -95,9 +88,7 @@ export default function EmailValidationScreen() {
             {/* Volver */}
             <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
               <Ionicons name="arrow-back-outline" size={16} color={theme.primary} />
-              <Text style={[s.backText, { color: theme.primary }]}>
-                {t('emailValidation.back')}
-              </Text>
+              <Text style={[s.backText, { color: theme.primary }]}>Volver al registro</Text>
             </TouchableOpacity>
 
             {/* Ícono reloj */}
@@ -106,13 +97,11 @@ export default function EmailValidationScreen() {
             </View>
 
             {/* Título */}
-            <Text style={[s.title, { color: text }]}>
-              {t('emailValidation.title')}
-            </Text>
+            <Text style={[s.title, { color: text }]}>Verifica tu correo</Text>
 
             {/* Subtítulo + email */}
             <Text style={[s.subtitle, { color: muted }]}>
-              {t('emailValidation.subtitle')}
+              Se ha enviado un código de 6 dígitos a
             </Text>
             <Text style={[s.emailText, { color: theme.primary }]}>
               {email || 'correo@ejemplo.com'}
@@ -122,20 +111,20 @@ export default function EmailValidationScreen() {
             <View style={[s.timerBadge, { backgroundColor: timerColor }]}>
               <Ionicons name="alarm-outline" size={14} color="#FFFFFF" />
               <Text style={s.timerText}>
-                {t('emailValidation.timeLeft')} {formatTime(timeLeft)}
+                Tiempo restante {formatTime(timeLeft)}
               </Text>
             </View>
 
             {/* Reenviar */}
             <TouchableOpacity style={s.resendBtn} onPress={handleResend}>
               <Text style={[s.resendText, { color: theme.primary }]}>
-                {t('emailValidation.resend')}
+                Reenviar código
               </Text>
             </TouchableOpacity>
 
             {/* Campo código */}
             <Text style={[s.inputLabel, { color: text }]}>
-              {t('emailValidation.codeLabel')}
+              Código de verificación
             </Text>
             <TextInput
               style={[s.codeInput, {
@@ -153,7 +142,7 @@ export default function EmailValidationScreen() {
             {error ? <Text style={s.errorText}>{error}</Text> : null}
 
             <Text style={[s.hint, { color: muted }]}>
-              {t('emailValidation.hint')}
+              Ingresa el código de 6 dígitos enviado a tu correo
             </Text>
 
             {/* Botón verificar */}
@@ -167,7 +156,7 @@ export default function EmailValidationScreen() {
                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                 style={s.buttonGradient}
               >
-                <Text style={s.buttonText}>{t('emailValidation.verify')}</Text>
+                <Text style={s.buttonText}>Verificar código</Text>
               </LinearGradient>
             </TouchableOpacity>
 
@@ -175,7 +164,8 @@ export default function EmailValidationScreen() {
             <View style={[s.demoBox, { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#F5F5F5' }]}>
               <Ionicons name="information-circle-outline" size={13} color={muted} />
               <Text style={[s.demoText, { color: muted }]}>
-                Demo: el código es <Text style={{ fontWeight: '800', color: theme.primary }}>123456</Text>
+                Demo: el código es{' '}
+                <Text style={{ fontWeight: '800', color: theme.primary }}>123456</Text>
               </Text>
             </View>
 

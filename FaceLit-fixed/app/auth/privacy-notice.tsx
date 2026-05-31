@@ -70,12 +70,7 @@ export default function PrivacyNoticeScreen() {
           contentContainerStyle={styles.scroll}
           showsVerticalScrollIndicator={false}
         >
-          <Image
-            source={require('@/assets/images/logo.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-
+          
           <View
             style={[
               styles.card,

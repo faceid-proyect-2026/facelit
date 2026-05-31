@@ -1,10 +1,9 @@
 // ─────────────────────────────────────────────
 //  components/ui/ThemeToggle.tsx
-//  Botón para alternar tema claro / oscuro
-//  Texto traducido según idioma activo
+//  Botón de tema con ícono de sol/luna + texto "Tema"
 // ─────────────────────────────────────────────
-import { TouchableOpacity, Text, StyleSheet, ViewStyle } from 'react-native';
-import { useTranslation } from 'react-i18next';
+import { TouchableOpacity, Text, StyleSheet, ViewStyle, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/ThemeContext';
 
 interface ThemeToggleProps {
@@ -13,7 +12,6 @@ interface ThemeToggleProps {
 
 export default function ThemeToggle({ style }: ThemeToggleProps) {
   const { isDark, toggleTheme, theme } = useTheme();
-  const { t } = useTranslation();
 
   return (
     <TouchableOpacity
@@ -28,25 +26,28 @@ export default function ThemeToggle({ style }: ThemeToggleProps) {
         style,
       ]}
     >
-      <Text style={[styles.label, { color: theme.primary }]}>
-        {isDark ? t('theme.light') : t('theme.dark')}
-      </Text>
+      <Ionicons
+        name={isDark ? 'sunny-outline' : 'moon-outline'}
+        size={15}
+        color={theme.primary}
+      />
+      <Text style={[styles.label, { color: theme.primary }]}>Tema</Text>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   btn: {
-    minWidth: 72,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     height: 40,
     borderRadius: 20,
     borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
   },
   label: {
-    fontSize: 12,
-    fontWeight: '800',
+    fontSize: 13,
+    fontWeight: '700',
   },
 });

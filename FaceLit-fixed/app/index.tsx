@@ -197,7 +197,7 @@ export default function LandingScreen() {
               <View style={s.techGrid}>
                 {[
                   { icon: 'scan-outline',          label: 'Reconocimiento Facial IA' },
-                  { icon: 'color-palette-outline', label: 'Diseño UI/UX Figma' },
+                  { icon: 'color-palette-outline', label: 'Diseño UI/UX' },
                   { icon: 'phone-portrait-outline',label: 'Web y Móvil' },
                   { icon: 'layers-outline',        label: 'Arquitectura escalable' },
                   { icon: 'server-outline',        label: 'Base de datos académica' },

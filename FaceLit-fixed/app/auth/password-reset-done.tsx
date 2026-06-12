@@ -2,7 +2,7 @@ import { View, Text, Image, StyleSheet, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import AppButton from '@/components/ui/AppButton';
+import { AppButton } from '@/shared/components/ui';
 
 export default function PasswordResetDoneScreen() {
   return (

@@ -1,27 +1,14 @@
 // ─────────────────────────────────────────────
-//  hooks/use-theme-color.ts
-//  Hook para leer un color del tema activo.
-//  Usa el toggle manual de la app (ThemeContext),
-//  NO el esquema del sistema operativo.
+//  shared/hooks/useThemeColor.ts
 // ─────────────────────────────────────────────
-import { darkTheme, lightTheme } from '@/constants/theme';
-import { useTheme } from '@/contexts/ThemeContext';
- 
-const themes = {
-  light: lightTheme,
-  dark: darkTheme,
-};
- 
-type ThemeColorName = {
-  [K in keyof typeof lightTheme]: (typeof lightTheme)[K] extends string ? K : never;
-}[keyof typeof lightTheme];
- 
+import { useTheme } from '@/shared/contexts/ThemeContext';
+import { AppTheme } from '@/shared/contexts/ThemeContext';
+
 export function useThemeColor(
   props: { light?: string; dark?: string },
-  colorName: ThemeColorName
+  colorName: keyof AppTheme
 ) {
-  const { isDark } = useTheme();
+  const { theme, isDark } = useTheme();
   const scheme = isDark ? 'dark' : 'light';
-  return props[scheme] ?? themes[scheme][colorName];
+  return props[scheme] ?? (theme[colorName] as string);
 }
- 

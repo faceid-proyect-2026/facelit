@@ -12,7 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useTheme } from '@/contexts/ThemeContext';
+import { useTheme } from '@/shared/contexts/ThemeContext';
 
 // Requisitos individuales — para mostrar checks en tiempo real
 const REQUIREMENTS = [

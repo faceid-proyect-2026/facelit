@@ -8,8 +8,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme } from '@/contexts/ThemeContext';
-import AppButton from '@/components/ui/AppButton';
+import { useTheme } from '@/shared/contexts/ThemeContext';
+import { AppButton } from '@/shared/components/ui';
 
 export default function EmailValidatedSuccessScreen() {
   const { theme, isDark } = useTheme();

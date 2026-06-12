@@ -7,9 +7,9 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import GradientBackground from '@/components/GradientBackground';
-import AppButton from '@/components/ui/AppButton';
-import { useTheme } from '@/contexts/ThemeContext';
+import GradientBackground from '@/shared/components/layout/GradientBackground';
+import { AppButton } from '@/shared/components/ui';
+import { useTheme } from '@/shared/contexts/ThemeContext';
 
 export default function RegistrationSuccessScreen() {
   const { theme, isDark } = useTheme();

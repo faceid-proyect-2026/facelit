@@ -1,21 +1,21 @@
 // ─────────────────────────────────────────────
 //  app/_layout.tsx
-//  Root layout — provee ThemeProvider + I18nProvider
-//  a toda la app. Las rutas usan el prefijo "auth/"
-//  porque los archivos viven en app/auth/
+//  Fix: agrega I18nextProvider para que
+//  useTranslation() detecte cambios de idioma
 // ─────────────────────────────────────────────
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { View, StyleSheet } from 'react-native';
-
-import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
-import { I18nProvider } from '@/contexts/I18nContext';
+import { I18nextProvider } from 'react-i18next';
+import { ThemeProvider, useTheme } from '@/shared/contexts/ThemeContext';
+import { I18nProvider } from '@/shared/contexts/I18nContext';
+import i18n from '@/shared/i18n/index';
 
 function RootLayoutInner() {
   const { theme } = useTheme();
 
   return (
-    <View style={[styles.root, { backgroundColor: theme.background }]}>
+    <View style={[s.root, { backgroundColor: theme.background }]}>
       <StatusBar style={theme.statusBar} />
       <Stack
         screenOptions={{
@@ -29,16 +29,16 @@ function RootLayoutInner() {
         <Stack.Screen name="auth/register" />
         <Stack.Screen name="auth/email-validation" />
         <Stack.Screen name="auth/email-validated-success" />
-        <Stack.Screen name="auth/rights" />
-        <Stack.Screen name="auth/privacy-notice" />
-        <Stack.Screen name="auth/minor-consent" />
-        <Stack.Screen name="auth/teenager-registration" />
-        <Stack.Screen name="auth/registration-success" />
         <Stack.Screen name="auth/password-recovery" />
-        <Stack.Screen name="auth/token-sent" />
         <Stack.Screen name="auth/verify-identity" />
         <Stack.Screen name="auth/new-password" />
         <Stack.Screen name="auth/password-reset-done" />
+        <Stack.Screen name="auth/registration-success" />
+        <Stack.Screen name="auth/teenager-registration" />
+        <Stack.Screen name="auth/minor-consent" />
+        <Stack.Screen name="auth/rights" />
+        <Stack.Screen name="auth/privacy-notice" />
+        <Stack.Screen name="admin" options={{ animation: 'fade' }} />
       </Stack>
     </View>
   );
@@ -46,14 +46,16 @@ function RootLayoutInner() {
 
 export default function RootLayout() {
   return (
-    <ThemeProvider>
-      <I18nProvider>
-        <RootLayoutInner />
-      </I18nProvider>
-    </ThemeProvider>
+    <I18nextProvider i18n={i18n}>
+      <ThemeProvider>
+        <I18nProvider>
+          <RootLayoutInner />
+        </I18nProvider>
+      </ThemeProvider>
+    </I18nextProvider>
   );
 }
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   root: { flex: 1 },
 });

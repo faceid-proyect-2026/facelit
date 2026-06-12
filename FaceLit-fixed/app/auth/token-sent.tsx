@@ -1,105 +1,112 @@
-import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  Dimensions,
-} from 'react-native';
+import { View, Text, Image, StyleSheet, Dimensions } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { TouchableOpacity } from 'react-native';
-import { useTheme } from '@/contexts/ThemeContext';
+import { useTheme } from '@/shared/contexts/ThemeContext';
+
+// ─── Constants ────────────────────────────────────────────────────────────────
 
 const { width } = Dimensions.get('window');
 
+const GRADIENT_DARK = ['#000000', '#06170F', '#0B2D17'] as const;
+const GRADIENT_LIGHT = ['#F7FFF4', '#E5F7DF', '#1E4C28'] as const;
+const BUTTON_GRADIENT = ['#72C96D', '#65B361', '#4FA14B'] as const;
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
 export default function TokenSentScreen() {
   const { isDark } = useTheme();
-
-  const text = isDark ? '#FFFFFF' : '#000000';
-  const muted = isDark ? '#CAD6C8' : '#1E1E1E';
-  const cardBg = isDark ? '#07120D' : '#FFFFFF';
+  const colors = getColors(isDark);
 
   return (
     <LinearGradient
-      colors={
-        isDark
-          ? ['#000000', '#06170F', '#0B2D17']
-          : ['#F7FFF4', '#E5F7DF', '#1E4C28']
-      }
+      colors={isDark ? GRADIENT_DARK : GRADIENT_LIGHT}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.gradient}
     >
-      <View
-        style={[
-          styles.backgroundArcTop,
-          {
-            backgroundColor: isDark
-              ? 'rgba(101,179,97,0.08)'
-              : 'rgba(20,70,28,0.18)',
-          },
-        ]}
-      />
-
-      <View
-        style={[
-          styles.backgroundArcBottom,
-          {
-            backgroundColor: isDark
-              ? 'rgba(101,179,97,0.22)'
-              : 'rgba(101,179,97,0.28)',
-          },
-        ]}
-      />
+      <BackgroundArcs isDark={isDark} />
 
       <SafeAreaView style={styles.safe}>
-        <View
-          style={[
-            styles.card,
-            {
-              backgroundColor: cardBg,
-              shadowColor: isDark ? '#000000' : '#1C3A1D',
-            },
-          ]}
-        >
-          <View style={styles.header}>
-            <Image
-              source={require('@/assets/images/token.png')}
-              style={styles.image}
-              resizeMode="contain"
-            />
-          </View>
-
-          <View style={styles.body}>
-            <Text style={[styles.title, { color: text }]}>
-              Código enviado
-            </Text>
-
-            <Text style={[styles.subtitle, { color: muted }]}>
-              Te enviamos un código de verificación a tu correo.
-              Revísalo para continuar.
-            </Text>
-
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => router.push('/auth/verify-identity')}
-            >
-              <LinearGradient
-                colors={['#72C96D', '#65B361', '#4FA14B']}
-                style={styles.buttonGradient}
-              >
-                <Text style={styles.buttonText}>
-                  Entendido
-                </Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
+        <View style={[styles.card, { backgroundColor: colors.cardBg, shadowColor: colors.shadow }]}>
+          <CardHeader />
+          <CardBody colors={colors} />
         </View>
       </SafeAreaView>
     </LinearGradient>
   );
 }
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function BackgroundArcs({ isDark }: { isDark: boolean }) {
+  return (
+    <>
+      <View
+        style={[
+          styles.arcTop,
+          { backgroundColor: isDark ? 'rgba(101,179,97,0.08)' : 'rgba(20,70,28,0.18)' },
+        ]}
+      />
+      <View
+        style={[
+          styles.arcBottom,
+          { backgroundColor: isDark ? 'rgba(101,179,97,0.22)' : 'rgba(101,179,97,0.28)' },
+        ]}
+      />
+    </>
+  );
+}
+
+function CardHeader() {
+  return (
+    <View style={styles.header}>
+      <Image
+        source={require('@/assets/images/token.png')}
+        style={styles.image}
+        resizeMode="contain"
+      />
+    </View>
+  );
+}
+
+function CardBody({ colors }: { colors: ReturnType<typeof getColors> }) {
+  return (
+    <View style={styles.body}>
+      <Text style={[styles.title, { color: colors.text }]}>
+        Código enviado
+      </Text>
+
+      <Text style={[styles.subtitle, { color: colors.muted }]}>
+        Te enviamos un código de verificación a tu correo. Revísalo para continuar.
+      </Text>
+
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => router.push('/auth/verify-identity')}
+        activeOpacity={0.85}
+      >
+        <LinearGradient colors={BUTTON_GRADIENT} style={styles.buttonGradient}>
+          <Text style={styles.buttonText}>Entendido</Text>
+        </LinearGradient>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function getColors(isDark: boolean) {
+  return {
+    text:    isDark ? '#FFFFFF' : '#000000',
+    muted:   isDark ? '#CAD6C8' : '#1E1E1E',
+    cardBg:  isDark ? '#07120D' : '#FFFFFF',
+    shadow:  isDark ? '#000000' : '#1C3A1D',
+  };
+}
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   gradient: {
@@ -113,7 +120,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
 
-  backgroundArcTop: {
+  // Background decorations
+  arcTop: {
     position: 'absolute',
     width: 300,
     height: 420,
@@ -121,8 +129,7 @@ const styles = StyleSheet.create({
     top: -90,
     borderRadius: 200,
   },
-
-  backgroundArcBottom: {
+  arcBottom: {
     position: 'absolute',
     width: 420,
     height: 220,
@@ -131,6 +138,7 @@ const styles = StyleSheet.create({
     borderRadius: 180,
   },
 
+  // Card
   card: {
     width: '100%',
     maxWidth: 420,
@@ -142,30 +150,29 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
 
+  // Header
   header: {
     backgroundColor: '#65B361',
     paddingVertical: 32,
     alignItems: 'center',
   },
-
   image: {
     width: 95,
     height: 95,
   },
 
+  // Body
   body: {
     paddingHorizontal: 28,
     paddingVertical: 30,
     alignItems: 'center',
   },
-
   title: {
     fontSize: 28,
     fontWeight: '900',
     textAlign: 'center',
     marginBottom: 12,
   },
-
   subtitle: {
     fontSize: 14,
     lineHeight: 22,
@@ -173,17 +180,16 @@ const styles = StyleSheet.create({
     marginBottom: 26,
   },
 
+  // Button
   button: {
     width: '70%',
     borderRadius: 16,
     overflow: 'hidden',
   },
-
   buttonGradient: {
     paddingVertical: 12,
     alignItems: 'center',
   },
-
   buttonText: {
     color: '#FFFFFF',
     fontSize: 18,

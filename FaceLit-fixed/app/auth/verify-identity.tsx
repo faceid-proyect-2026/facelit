@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useTheme } from '@/contexts/ThemeContext';
+import { useTheme } from '@/shared/contexts/ThemeContext';
 
 const { width } = Dimensions.get('window');
 

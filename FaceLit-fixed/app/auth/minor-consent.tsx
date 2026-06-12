@@ -13,7 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, Link, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme } from '@/contexts/ThemeContext';
+import { useTheme } from '@/shared/contexts/ThemeContext';
 
 const { width } = Dimensions.get('window');
 const CARD_MAX = 500;

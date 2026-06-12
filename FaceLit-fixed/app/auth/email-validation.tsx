@@ -5,12 +5,15 @@
 //  Al verificar exitosamente → email-validated-success
 // ─────────────────────────────────────────────
 import { useState, useEffect } from 'react';
-import {View, Text, TextInput, TouchableOpacity,StyleSheet, ScrollView,} from 'react-native';
+import {
+  View, Text, TextInput, TouchableOpacity,
+  StyleSheet, ScrollView,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useTheme } from '@/contexts/ThemeContext';
+import { useTheme } from '@/shared/contexts/ThemeContext';
 
 // Código mock para demo — en producción viene del backend
 const CODE_MOCK    = '123456';

@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/shared/contexts/ThemeContext';
 import { useLanguage } from '@/shared/contexts/I18nContext';
+import { useTranslation } from 'react-i18next';
 import { Colors } from '@/shared/constants/colors';
 import { FontSize, FontWeight } from '@/shared/constants/typography';
 import { Routes } from '@/shared/constants/routes';
@@ -66,6 +67,12 @@ export default function LandingScreen() {
   const { theme, isDark } = useTheme();
   const { width } = useWindowDimensions();
   const isWide = width >= 820;
+  const { t } = useTranslation();
+
+  console.log(
+    'Idioma:',
+      t('landing.contactTitle')
+);
 
   // Colores semánticos locales (derivados del tema)
   const cardBg     = isDark ? '#111827'   : Colors.white;
@@ -92,101 +99,205 @@ export default function LandingScreen() {
           showsVerticalScrollIndicator={false}
         >
 
-          {/* ── Header ── */}
-          <View style={[s.header, { borderBottomColor: border }]}>
-            <Image
-              source={isDark
-                ? require('@/assets/images/logo.png')
-                : require('@/assets/images/logo2.png')}
-              style={s.logo}
-              resizeMode="contain"
-            />
-            {isWide && (
-              <View style={s.nav}>
-                <Text style={[s.navText, { color: muted }]}>App</Text>
-                <Text style={[s.navText, { color: muted }]}>Seguridad</Text>
-                <Text style={[s.navText, { color: muted }]}>Contacto</Text>
-              </View>
-            )}
-            <View style={s.headerActions}>
-              <LanguageSelector />
-              <ThemeToggle />
-            </View>
-          </View>
+            {/* ── Header ── */}
+            <View style={[s.header, { borderBottomColor: border }]}>
+              <Image
+                source={isDark
+                  ? require('@/assets/images/logo.png')
+                  : require('@/assets/images/logo2.png')}
+                style={s.logo}
+                resizeMode="contain"
+              />
 
-          {/* ── Hero ── */}
-          <View style={[s.hero, isWide && s.heroWide]}>
-            <View style={s.heroCopy}>
-              <View style={[s.pill, {
-                backgroundColor: theme.primaryFaint,
-                borderColor:     border,
-              }]}>
-                <View style={[s.pillDot, { backgroundColor: theme.primary }]} />
-                <Text style={[s.pillText, { color: theme.primary }]}>
-                  Sistema Inteligente · SENA
-                </Text>
-              </View>
-
-              <Text style={[
-                s.heroTitle,
-                { color: heading },
-                isWide && s.heroTitleWide,
-              ]}>
-                Transformando el{'\n'}control de{' '}
-                <Text style={{ color: theme.primary }}>
-                  asistencia{'\n'}académica
-                </Text>
-              </Text>
-
-              <View style={[s.heroDivider, { backgroundColor: theme.primary }]} />
-
-              <Text style={[s.heroText, { color: body }]}>
-                FaceLit automatiza el registro de asistencia con reconocimiento
-                facial e inteligencia biométrica, garantizando autenticidad,
-                seguridad y eficiencia en cada ingreso.
-              </Text>
-
-              <View style={s.ctaRow}>
-                <TouchableOpacity
-                  onPress={() => router.push(Routes.AUTH.REGISTER as any)}
-                  activeOpacity={0.85}
-                  style={s.primaryBtnWrap}
-                >
-                  <LinearGradient
-                    colors={[Colors.primaryLight, Colors.primary, Colors.primaryDark]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={s.primaryBtn}
-                  >
-                    <Ionicons name="person-add-outline" size={18} color={Colors.white} />
-                    <Text style={s.primaryBtnText}>Crear cuenta</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => router.push(Routes.AUTH.LOGIN as any)}
-                  activeOpacity={0.85}
-                  style={[s.secondaryBtn, {
-                    borderColor:     theme.primary,
-                    backgroundColor: isDark
-                      ? 'rgba(101,179,97,0.06)'
-                      : 'rgba(101,179,97,0.04)',
-                  }]}
-                >
-                  <Ionicons name="person-outline" size={18} color={theme.primary} />
-                  <Text style={[s.secondaryBtnText, { color: theme.primary }]}>
-                    Ya tengo cuenta
+              {isWide && (
+                <View style={s.nav}>
+                  <Text style={[s.navText, { color: muted }]}>
+                    {t('nav.app')}
                   </Text>
-                </TouchableOpacity>
-              </View>
 
-              <View style={s.metrics}>
-                <MetricCard icon="time-outline"             value="24/7"  label="Disponibilidad"      color={theme.primary} muted={muted} />
-                <MetricCard icon="scan-outline"             value="IA"    label="Reconocimiento"       color={theme.primary} muted={muted} />
-                <MetricCard icon="checkmark-circle-outline" value="100%"  label="Automatizado"         color={theme.primary} muted={muted} />
-                <MetricCard icon="shield-checkmark-outline" value="0"     label="Suplantaciones"       color={theme.primary} muted={muted} />
+                  <Text style={[s.navText, { color: muted }]}>
+                    {t('nav.security')}
+                  </Text>
+
+                  <Text style={[s.navText, { color: muted }]}>
+                    {t('nav.contact')}
+                  </Text>
+                </View>
+              )}
+
+              <View
+                style={[
+                  s.headerActions,
+                  { position: 'relative', zIndex: 999999 },
+                ]}
+              >
+                <LanguageSelector />
+                <ThemeToggle />
               </View>
             </View>
+
+              {/* ── Hero ── */}
+              <View style={[s.hero, isWide && s.heroWide]}>
+                <View style={s.heroCopy}>
+                  <View
+                    style={[
+                      s.pill,
+                      {
+                        backgroundColor: theme.primaryFaint,
+                        borderColor: border,
+                      },
+                    ]}
+                  >
+                    <View
+                      style={[
+                        s.pillDot,
+                        { backgroundColor: theme.primary },
+                      ]}
+                    />
+
+                    <Text
+                      style={[
+                        s.pillText,
+                        { color: theme.primary },
+                      ]}
+                    >
+                      {t('hero.pill')}
+                    </Text>
+                  </View>
+
+                  <Text
+                    style={[
+                      s.heroTitle,
+                      { color: heading },
+                      isWide && s.heroTitleWide,
+                    ]}
+                  >
+                    {t('hero.title1')}
+                    {'\n'}
+                    {t('hero.title2')}
+                    {' '}
+
+                    <Text style={{ color: theme.primary }}>
+                      {t('hero.titleAccent')}
+                    </Text>
+                  </Text>
+
+                  <View
+                    style={[
+                      s.heroDivider,
+                      { backgroundColor: theme.primary },
+                    ]}
+                  />
+
+                  <Text
+                    style={[
+                      s.heroText,
+                      { color: body },
+                    ]}
+                  >
+                    {t('hero.description')}
+                  </Text>
+
+                  <View style={s.ctaRow}>
+                    <TouchableOpacity
+                      onPress={() =>
+                        router.push(
+                          Routes.AUTH.REGISTER as any
+                        )
+                      }
+                      activeOpacity={0.85}
+                      style={s.primaryBtnWrap}
+                    >
+                      <LinearGradient
+                        colors={[
+                          Colors.primaryLight,
+                          Colors.primary,
+                          Colors.primaryDark,
+                        ]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={s.primaryBtn}
+                      >
+                        <Ionicons
+                          name="person-add-outline"
+                          size={18}
+                          color={Colors.white}
+                        />
+
+                        <Text style={s.primaryBtnText}>
+                          {t('hero.createAccount')}
+                        </Text>
+                      </LinearGradient>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      onPress={() =>
+                        router.push(
+                          Routes.AUTH.LOGIN as any
+                        )
+                      }
+                      activeOpacity={0.85}
+                      style={[
+                        s.secondaryBtn,
+                        {
+                          borderColor: theme.primary,
+                          backgroundColor: isDark
+                            ? 'rgba(101,179,97,0.06)'
+                            : 'rgba(101,179,97,0.04)',
+                        },
+                      ]}
+                    >
+                      <Ionicons
+                        name="person-outline"
+                        size={18}
+                        color={theme.primary}
+                      />
+
+                      <Text
+                        style={[
+                          s.secondaryBtnText,
+                          { color: theme.primary },
+                        ]}
+                      >
+                        {t('hero.login')}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={s.metrics}>
+                    <MetricCard
+                      icon="time-outline"
+                      value="24/7"
+                      label={t('hero.metric1')}
+                      color={theme.primary}
+                      muted={muted}
+                    />
+
+                    <MetricCard
+                      icon="scan-outline"
+                      value="IA"
+                      label={t('hero.metric2')}
+                      color={theme.primary}
+                      muted={muted}
+                    />
+
+                    <MetricCard
+                      icon="checkmark-circle-outline"
+                      value="100%"
+                      label={t('hero.metric3')}
+                      color={theme.primary}
+                      muted={muted}
+                    />
+
+                    <MetricCard
+                      icon="shield-checkmark-outline"
+                      value="0"
+                      label={t('hero.metric4')}
+                      color={theme.primary}
+                      muted={muted}
+                    />
+                  </View>
+                </View>
 
             {/* Mockup */}
             <View style={[s.heroVisual, {
@@ -217,44 +328,48 @@ export default function LandingScreen() {
                   <View style={[s.scanLine, { backgroundColor: theme.primary }]} />
                 </View>
                 <View style={[s.phoneInfo, { borderTopColor: border }]}>
-                  <Ionicons name="shield-checkmark-outline" size={20} color={theme.primary} />
+                  <Ionicons
+                    name="shield-checkmark-outline"
+                    size={20}
+                    color={theme.primary}
+                  />
                   <Text style={[s.phoneInfoText, { color: muted }]}>
-                    Identificación biométrica en tiempo real para el SENA
+                    {t('hero.phoneInfo')}
                   </Text>
                 </View>
               </View>
             </View>
           </View>
 
-          {/* ── ¿Por qué nace FaceLit? ── */}
-          <View style={[s.section, { borderTopColor: border, borderTopWidth: 1 }]}>
-            <Text style={[s.sectionTitle, { color: heading }]}>
-              ¿Por qué nace FaceLit?
-            </Text>
-            <Text style={[s.sectionText, { color: body }]}>
-              En muchos entornos educativos, el control manual de asistencia
-              genera problemas frecuentes. Los métodos tradicionales consumen
-              entre 5 y 10 minutos por jornada.
-            </Text>
-            <View style={[s.features, isWide && s.featuresWide]}>
-              {PROBLEMS.map((item) => (
-                <FeatureCard
-                  key={item.number}
-                  {...item}
-                  bg={softCardBg}
-                  border={border}
-                  heading={heading}
-                  body={body}
-                  accent={theme.primary}
-                />
-              ))}
+            {/* ── ¿Por qué nace FaceLit? ── */}
+            <View style={[s.section, { borderTopColor: border, borderTopWidth: 1 }]}>
+              <Text style={[s.sectionTitle, { color: heading }]}>
+                {t('problems.sectionTitle')}
+              </Text>
+
+              <Text style={[s.sectionText, { color: body }]}>
+                {t('problems.sectionText')}
+              </Text>
+
+              <View style={[s.features, isWide && s.featuresWide]}>
+                {PROBLEMS.map((item) => (
+                  <FeatureCard
+                    key={item.number}
+                    {...item}
+                    bg={softCardBg}
+                    border={border}
+                    heading={heading}
+                    body={body}
+                    accent={theme.primary}
+                  />
+                ))}
+              </View>
             </View>
-          </View>
 
           {/* ── ¿Qué ofrece FaceLit? ── */}
           <View style={s.section}>
             <Text style={[s.sectionTitle, { color: heading }]}>
-              ¿Qué ofrece FaceLit?
+              {t('offers.sectionTitle')}
             </Text>
             <View style={[s.features, isWide && s.featuresWide]}>
               {OFFERS.map((item) => (
@@ -275,12 +390,13 @@ export default function LandingScreen() {
           <View style={[s.split, isWide && s.splitWide]}>
             <View style={s.splitCopy}>
               <Text style={[s.sectionTitle, { color: heading }]}>
-                Objetivo del Proyecto
+                {t('objective.title')}
               </Text>
+
               <Text style={[s.sectionText, { color: body }]}>
-                Desarrollar un sistema inteligente de registro y control de
-                asistencia académica mediante reconocimiento facial para el SENA.
+                {t('objective.description')}
               </Text>
+
               <View style={s.checkList}>
                 {CHARACTERISTICS.map((item) => (
                   <View key={item} style={s.checkRow}>
@@ -289,7 +405,9 @@ export default function LandingScreen() {
                       size={16}
                       color={theme.primary}
                     />
-                    <Text style={[s.checkItem, { color: heading }]}>{item}</Text>
+                    <Text style={[s.checkItem, { color: heading }]}>
+                      {item}
+                    </Text>
                   </View>
                 ))}
               </View>
@@ -297,11 +415,11 @@ export default function LandingScreen() {
 
             <View style={[s.techPanel, { backgroundColor: cardBg, borderColor: border }]}>
               <Text style={[s.techTitle, { color: heading }]}>
-                Tecnologías Utilizadas
+                {t('tech.title')}
               </Text>
+
               <Text style={[s.techSubtitle, { color: muted }]}>
-                FaceLit integra tecnologías modernas enfocadas en rendimiento
-                y seguridad.
+                {t('tech.subtitle')}
               </Text>
               <View style={s.techGrid}>
                 {TECHNOLOGIES.map(({ icon, label }) => (
@@ -323,28 +441,46 @@ export default function LandingScreen() {
           </View>
 
           {/* ── Innovación ── */}
-          <View style={[s.innovationBanner, {
-            backgroundColor: softCardBg,
-            borderColor:     border,
-          }]}>
+          <View
+            style={[
+              s.innovationBanner,
+              {
+                backgroundColor: softCardBg,
+                borderColor: border,
+              },
+            ]}
+          >
             <Text style={[s.innovationTitle, { color: heading }]}>
-              Innovación para el futuro educativo
+              {t('innovation.title')}
             </Text>
+
             <Text style={[s.innovationText, { color: body }]}>
-              FaceLit transforma la experiencia académica mediante tecnología
-              inteligente, fortaleciendo la seguridad y la eficiencia del SENA.
+              {t('innovation.text')}
             </Text>
+
             <View style={s.innovationPills}>
               {CLOSING_PILLS.map(({ icon, label }) => (
                 <View
                   key={label}
-                  style={[s.innovationPill, {
-                    backgroundColor: theme.primaryFaint,
-                    borderColor:     border,
-                  }]}
+                  style={[
+                    s.innovationPill,
+                    {
+                      backgroundColor: theme.primaryFaint,
+                      borderColor: border,
+                    },
+                  ]}
                 >
-                  <Ionicons name={icon as any} size={16} color={theme.primary} />
-                  <Text style={[s.innovationPillText, { color: theme.primary }]}>
+                  <Ionicons
+                    name={icon as any}
+                    size={16}
+                    color={theme.primary}
+                  />
+                  <Text
+                    style={[
+                      s.innovationPillText,
+                      { color: theme.primary },
+                    ]}
+                  >
                     {label}
                   </Text>
                 </View>
@@ -358,10 +494,10 @@ export default function LandingScreen() {
             borderColor:     border,
           }]}>
             <View style={s.contactCopy}>
-              <Text style={[s.contactTitle, { color: heading }]}>Contacto</Text>
+              <Text style={[s.contactTitle, { color: heading }]}>{t('landing.contactTitle')}</Text>
               <Text style={[s.contactText, { color: body }]}>
-                Soporte, información del proyecto o ayuda con tu cuenta.
-              </Text>
+                {t('landing.contactText')}
+            </Text>
             </View>
             <View style={s.contactList}>
               {[
@@ -379,20 +515,24 @@ export default function LandingScreen() {
 
           {/* ── Footer ── */}
           <View style={s.footer}>
-            <Text style={[s.footerText, { color: muted }]}>FaceLit © 2026</Text>
+            <Text style={[s.footerText, { color: muted }]}>
+              FaceLit © 2026
+            </Text>
+
             <View style={s.footerLinks}>
               <TouchableOpacity
                 onPress={() => router.push(Routes.AUTH.PRIVACY_NOTICE as any)}
               >
                 <Text style={[s.footerLink, { color: theme.primary }]}>
-                  Privacidad
+                  {t('landing.footerPrivacy')}
                 </Text>
               </TouchableOpacity>
+
               <TouchableOpacity
                 onPress={() => router.push(Routes.AUTH.RIGHTS as any)}
               >
                 <Text style={[s.footerLink, { color: theme.primary }]}>
-                  Derechos
+                  {t('landing.footerRights')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -447,11 +587,11 @@ const s = StyleSheet.create({
   safe:  { flex: 1, backgroundColor: 'transparent' },
   scroll: { width: '100%', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 34 },
 
-  header:        { width: '100%', maxWidth: 1120, minHeight: 78, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 14, borderBottomWidth: 1, paddingVertical: 14 },
+  header:        { width: '100%', maxWidth: 1120, minHeight: 78, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 14, borderBottomWidth: 1, paddingVertical: 14, position: 'relative', zIndex: 999999 },
   logo:          { width: 140, height: 48 },
   nav:           { flexDirection: 'row', alignItems: 'center', gap: 24 },
   navText:       { fontSize: FontSize.base, fontWeight: FontWeight.bold },
-  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 10, position: 'relative', zIndex: 999999 },
 
   hero:          { width: '100%', maxWidth: 1120, alignItems: 'center', gap: 34, paddingTop: 46, paddingBottom: 56 },
   heroWide:      { flexDirection: 'row', alignItems: 'center', gap: 52 },

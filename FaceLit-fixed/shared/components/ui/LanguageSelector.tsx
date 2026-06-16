@@ -23,35 +23,59 @@ function LanguageSelectorWeb({ style }: LanguageSelectorProps) {
   const { isDark } = useTheme();
   const [open, setOpen] = useState(false);
 
-  const bg       = isDark ? Colors.dark.card    : Colors.white;
-  const border   = isDark ? 'rgba(101,179,97,0.4)' : '#DDDDDD';
-  const textCol  = isDark ? Colors.dark.text    : Colors.light.text;
-  const activeBg = isDark ? 'rgba(101,179,97,0.22)' : 'rgba(101,179,97,0.13)';
-  const hoverBg  = Colors.primaryFaint;
+  const bg = isDark ? Colors.dark.card : Colors.white;
+  const border = isDark ? 'rgba(101,179,97,0.4)' : '#DDDDDD';
+  const textCol = isDark ? Colors.dark.text : Colors.light.text;
+  const activeBg = isDark
+    ? 'rgba(101,179,97,0.22)'
+    : 'rgba(101,179,97,0.13)';
+  const hoverBg = Colors.primaryFaint;
 
   return (
     // @ts-ignore
-    <div style={{ position: 'relative', display: 'inline-block' }}>
+    <div
+      style={{
+        position: 'relative',
+        display: 'inline-block',
+        zIndex: 999999,
+      }}
+    >
       {/* @ts-ignore */}
       <button
         onClick={() => setOpen(v => !v)}
         style={{
-          display: 'flex', alignItems: 'center', gap: 6,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
           background: isDark ? 'rgba(255,255,255,0.05)' : '#F6F6F6',
           border: `1.5px solid ${Colors.primary}`,
-          borderRadius: 20, height: 40,
-          padding: '0 14px', cursor: 'pointer',
-          fontWeight: 700, fontSize: 13,
-          color: Colors.primary, outline: 'none',
+          borderRadius: 20,
+          height: 40,
+          padding: '0 14px',
+          cursor: 'pointer',
+          fontWeight: 700,
+          fontSize: 13,
+          color: Colors.primary,
+          outline: 'none',
+          position: 'relative',
+          zIndex: 999999,
         }}
       >
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-          stroke={Colors.primary} strokeWidth="2.2"
-          strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="2" y1="12" x2="22" y2="12"/>
-          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke={Colors.primary}
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <line x1="2" y1="12" x2="22" y2="12" />
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
         </svg>
+
         <span>{LANGUAGE_LABELS[language]}</span>
         <span style={{ fontSize: 9 }}>▾</span>
       </button>
@@ -60,15 +84,22 @@ function LanguageSelectorWeb({ style }: LanguageSelectorProps) {
         // @ts-ignore
         <div
           style={{
-            position: 'absolute', top: '110%', right: 0,
-            background: bg, border: `1px solid ${border}`,
-            borderRadius: 12, minWidth: 170, zIndex: 9999,
+            position: 'absolute',
+            top: '110%',
+            right: 0,
+            background: bg,
+            border: `1px solid ${border}`,
+            borderRadius: 12,
+            minWidth: 170,
+            zIndex: 999999,
+            pointerEvents: 'auto',
             boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
             overflow: 'hidden',
           }}
         >
           {LANGUAGES.map((lang) => {
             const isActive = language === lang;
+
             return (
               // @ts-ignore
               <div
@@ -78,8 +109,11 @@ function LanguageSelectorWeb({ style }: LanguageSelectorProps) {
                   setOpen(false);
                 }}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 10,
-                  padding: '11px 16px', cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: '11px 16px',
+                  cursor: 'pointer',
                   background: isActive ? activeBg : 'transparent',
                   userSelect: 'none',
                 }}
@@ -87,27 +121,52 @@ function LanguageSelectorWeb({ style }: LanguageSelectorProps) {
                   e.currentTarget.style.background = hoverBg;
                 }}
                 onMouseLeave={(e: any) => {
-                  e.currentTarget.style.background = isActive ? activeBg : 'transparent';
+                  e.currentTarget.style.background = isActive
+                    ? activeBg
+                    : 'transparent';
                 }}
               >
-                <span style={{
-                  width: 28, height: 28, borderRadius: 14, flexShrink: 0,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: isActive ? Colors.primary : (isDark ? 'rgba(101,179,97,0.18)' : 'rgba(101,179,97,0.14)'),
-                  fontSize: 10, fontWeight: 800,
-                  color: isActive ? Colors.white : Colors.primary,
-                }}>
+                <span
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 14,
+                    flexShrink: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: isActive
+                      ? Colors.primary
+                      : isDark
+                      ? 'rgba(101,179,97,0.18)'
+                      : 'rgba(101,179,97,0.14)',
+                    fontSize: 10,
+                    fontWeight: 800,
+                    color: isActive ? Colors.white : Colors.primary,
+                  }}
+                >
                   {lang.toUpperCase()}
                 </span>
-                <span style={{
-                  fontSize: 14,
-                  fontWeight: isActive ? 700 : 500,
-                  color: isActive ? Colors.primary : textCol,
-                }}>
+
+                <span
+                  style={{
+                    fontSize: 14,
+                    fontWeight: isActive ? 700 : 500,
+                    color: isActive ? Colors.primary : textCol,
+                  }}
+                >
                   {LANGUAGE_NAMES[lang]}
                 </span>
+
                 {isActive && (
-                  <span style={{ marginLeft: 'auto', color: Colors.primary }}>✓</span>
+                  <span
+                    style={{
+                      marginLeft: 'auto',
+                      color: Colors.primary,
+                    }}
+                  >
+                    ✓
+                  </span>
                 )}
               </div>
             );
@@ -125,7 +184,7 @@ function LanguageSelectorMobile({ style }: LanguageSelectorProps) {
   const [open, setOpen] = useState(false);
 
   return (
-    <View style={[{ zIndex: 999 }, style]}>
+    <View style={[{ zIndex: 9999 }, style]}>
       <TouchableOpacity
         onPress={() => setOpen(v => !v)}
         activeOpacity={0.75}

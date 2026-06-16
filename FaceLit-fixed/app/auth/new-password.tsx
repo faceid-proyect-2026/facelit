@@ -1,7 +1,5 @@
 // ─────────────────────────────────────────────
 //  app/auth/new-password.tsx
-//  Mejoras: errores por campo, ojo con Ionicons,
-//  indicadores de requisitos en tiempo real
 // ─────────────────────────────────────────────
 import { useState } from 'react';
 import {
@@ -12,27 +10,20 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/shared/contexts/ThemeContext';
-
-// Requisitos individuales — para mostrar checks en tiempo real
-const REQUIREMENTS = [
-  { key: 'length',   label: 'Entre 8 y 15 caracteres',       test: (p: string) => p.length >= 8 && p.length <= 15 },
-  { key: 'upper',    label: 'Al menos una letra mayúscula',   test: (p: string) => /[A-Z]/.test(p) },
-  { key: 'lower',    label: 'Al menos una letra minúscula',   test: (p: string) => /[a-z]/.test(p) },
-  { key: 'number',   label: 'Al menos un número',             test: (p: string) => /\d/.test(p) },
-  { key: 'symbol',   label: 'Al menos un símbolo especial',   test: (p: string) => /[!@#$%^&*(),.?":{}|<>_\-+=]/.test(p) },
-];
 
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>_\-+=]).{8,15}$/;
 
 export default function NewPasswordScreen() {
+  const { t }           = useTranslation();
   const { isDark, theme } = useTheme();
 
-  const [password, setPassword]           = useState('');
+  const [password,        setPassword]        = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword]   = useState(false);
-  const [showConfirm, setShowConfirm]     = useState(false);
-  const [errors, setErrors]               = useState<Record<string, string>>({});
+  const [showPassword,    setShowPassword]    = useState(false);
+  const [showConfirm,     setShowConfirm]     = useState(false);
+  const [errors,          setErrors]          = useState<Record<string, string>>({});
 
   const text        = isDark ? '#FFFFFF' : '#000000';
   const muted       = isDark ? '#CAD6C8' : '#1E1E1E';
@@ -41,18 +32,27 @@ export default function NewPasswordScreen() {
   const inputBorder = isDark ? 'rgba(255,255,255,0.78)' : '#BBBBBB';
   const errorColor  = '#D92027';
 
+  // ── Array dentro del componente para acceder a t() ──
+  const REQUIREMENTS = [
+    { key: 'length', label: t('newPassword.req.length'), test: (p: string) => p.length >= 8 && p.length <= 15 },
+    { key: 'upper',  label: t('newPassword.req.upper'),  test: (p: string) => /[A-Z]/.test(p) },
+    { key: 'lower',  label: t('newPassword.req.lower'),  test: (p: string) => /[a-z]/.test(p) },
+    { key: 'number', label: t('newPassword.req.number'), test: (p: string) => /\d/.test(p) },
+    { key: 'symbol', label: t('newPassword.req.symbol'), test: (p: string) => /[!@#$%^&*(),.?":{}|<>_\-+=]/.test(p) },
+  ];
+
   const handleSubmit = () => {
     const e: Record<string, string> = {};
 
     if (!password)
-      e.password = 'La contraseña es obligatoria';
+      e.password = t('newPassword.errors.passwordRequired');
     else if (!PASSWORD_REGEX.test(password))
-      e.password = 'No cumple los requisitos de seguridad';
+      e.password = t('newPassword.errors.passwordInvalid');
 
     if (!confirmPassword)
-      e.confirm = 'Debes confirmar la contraseña';
+      e.confirm = t('newPassword.errors.confirmRequired');
     else if (password !== confirmPassword)
-      e.confirm = 'Las contraseñas no coinciden';
+      e.confirm = t('newPassword.errors.confirmMismatch');
 
     setErrors(e);
     if (Object.keys(e).length > 0) return;
@@ -66,7 +66,7 @@ export default function NewPasswordScreen() {
       start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
       style={s.gradient}
     >
-      <View style={[s.arcTop, { backgroundColor: isDark ? 'rgba(101,179,97,0.08)' : 'rgba(20,70,28,0.18)' }]} />
+      <View style={[s.arcTop,    { backgroundColor: isDark ? 'rgba(101,179,97,0.08)' : 'rgba(20,70,28,0.18)' }]} />
       <View style={[s.arcBottom, { backgroundColor: isDark ? 'rgba(101,179,97,0.22)' : 'rgba(101,179,97,0.28)' }]} />
 
       <SafeAreaView style={s.safe}>
@@ -75,10 +75,10 @@ export default function NewPasswordScreen() {
 
             {/* Volver */}
             <TouchableOpacity style={s.backBtn} onPress={() => router.push('/auth/verify-identity')}>
-              <Text style={s.backText}>← Solicitar nuevo código</Text>
+              <Text style={s.backText}>{t('newPassword.backBtn')}</Text>
             </TouchableOpacity>
 
-            {/* Icono */}
+            {/* Ícono */}
             <View style={s.iconWrapper}>
               <Image
                 source={require('@/assets/images/candado.png')}
@@ -87,14 +87,15 @@ export default function NewPasswordScreen() {
               />
             </View>
 
-            <Text style={[s.title, { color: text }]}>Nueva contraseña</Text>
-            <Text style={[s.subtitle, { color: muted }]}>
-              Crea una contraseña segura que cumpla con las políticas del sistema.
-            </Text>
+            {/* Título */}
+            <Text style={[s.title,    { color: text  }]}>{t('newPassword.title')}</Text>
+            <Text style={[s.subtitle, { color: muted }]}>{t('newPassword.subtitle')}</Text>
 
-            {/* Requisitos con checks en tiempo real */}
+            {/* Requisitos */}
             <View style={[s.requirements, { backgroundColor: isDark ? 'rgba(101,179,97,0.08)' : 'rgba(101,179,97,0.10)' }]}>
-              <Text style={[s.reqTitle, { color: theme.primary }]}>Requisitos de contraseña:</Text>
+              <Text style={[s.reqTitle, { color: theme.primary }]}>
+                {t('newPassword.reqTitle')}
+              </Text>
               {REQUIREMENTS.map((req) => {
                 const met = req.test(password);
                 return (
@@ -112,15 +113,11 @@ export default function NewPasswordScreen() {
               })}
             </View>
 
-            {/* Campo nueva contraseña */}
-            <Text style={[s.fieldLabel, { color: text }]}>Nueva contraseña</Text>
-            <View style={[
-              s.inputRow,
-              {
-                backgroundColor: inputBg,
-                borderColor: errors.password ? errorColor : inputBorder,
-              },
-            ]}>
+            {/* Nueva contraseña */}
+            <Text style={[s.fieldLabel, { color: text }]}>
+              {t('newPassword.passwordLabel')}
+            </Text>
+            <View style={[s.inputRow, { backgroundColor: inputBg, borderColor: errors.password ? errorColor : inputBorder }]}>
               <Ionicons name="lock-closed-outline" size={18} color={isDark ? '#7A8A78' : '#999999'} />
               <TextInput
                 style={[s.input, { color: text }]}
@@ -129,7 +126,7 @@ export default function NewPasswordScreen() {
                   setPassword(v);
                   setErrors((p) => ({ ...p, password: '' }));
                 }}
-                placeholder="Crea tu nueva contraseña"
+                placeholder={t('newPassword.passwordPlaceholder')}
                 placeholderTextColor={isDark ? '#AEB6C2' : '#AAAAAA'}
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
@@ -145,15 +142,11 @@ export default function NewPasswordScreen() {
             </View>
             {errors.password ? <Text style={s.errorText}>{errors.password}</Text> : null}
 
-            {/* Campo confirmar contraseña */}
-            <Text style={[s.fieldLabel, { color: text }]}>Confirmar contraseña</Text>
-            <View style={[
-              s.inputRow,
-              {
-                backgroundColor: inputBg,
-                borderColor: errors.confirm ? errorColor : inputBorder,
-              },
-            ]}>
+            {/* Confirmar contraseña */}
+            <Text style={[s.fieldLabel, { color: text }]}>
+              {t('newPassword.confirmLabel')}
+            </Text>
+            <View style={[s.inputRow, { backgroundColor: inputBg, borderColor: errors.confirm ? errorColor : inputBorder }]}>
               <Ionicons name="shield-checkmark-outline" size={18} color={isDark ? '#7A8A78' : '#999999'} />
               <TextInput
                 style={[s.input, { color: text }]}
@@ -162,7 +155,7 @@ export default function NewPasswordScreen() {
                   setConfirmPassword(v);
                   setErrors((p) => ({ ...p, confirm: '' }));
                 }}
-                placeholder="Repite tu nueva contraseña"
+                placeholder={t('newPassword.confirmPlaceholder')}
                 placeholderTextColor={isDark ? '#AEB6C2' : '#AAAAAA'}
                 secureTextEntry={!showConfirm}
                 autoCapitalize="none"
@@ -180,11 +173,8 @@ export default function NewPasswordScreen() {
 
             {/* Botón */}
             <TouchableOpacity style={s.button} onPress={handleSubmit}>
-              <LinearGradient
-                colors={['#72C96D', '#65B361', '#4FA14B']}
-                style={s.buttonGradient}
-              >
-                <Text style={s.buttonText}>Restablecer contraseña</Text>
+              <LinearGradient colors={['#72C96D', '#65B361', '#4FA14B']} style={s.buttonGradient}>
+                <Text style={s.buttonText}>{t('newPassword.submitBtn')}</Text>
               </LinearGradient>
             </TouchableOpacity>
 
@@ -199,42 +189,31 @@ const s = StyleSheet.create({
   gradient: { flex: 1 },
   safe:     { flex: 1 },
   scroll:   { flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
-
-  arcTop:    { position: 'absolute', width: 300, height: 420, right: -120, top: -90, borderRadius: 200 },
-  arcBottom: { position: 'absolute', width: 420, height: 220, left: -120, bottom: -30, borderRadius: 180 },
-
+  arcTop:    { position: 'absolute', width: 300, height: 420, right: -120, top: -90,    borderRadius: 200 },
+  arcBottom: { position: 'absolute', width: 420, height: 220, left: -120,  bottom: -30, borderRadius: 180 },
   card: {
     width: '100%', maxWidth: 460, borderRadius: 26,
     paddingHorizontal: 24, paddingVertical: 28,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.18, shadowRadius: 18, elevation: 8,
+    shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.18, shadowRadius: 18, elevation: 8,
   },
-
-  backBtn:  { marginBottom: 18 },
-  backText: { color: '#65B361', fontSize: 14, fontWeight: '700' },
-
+  backBtn:     { marginBottom: 18 },
+  backText:    { color: '#65B361', fontSize: 14, fontWeight: '700' },
   iconWrapper: { alignItems: 'center', marginBottom: 16 },
   image:       { width: 95, height: 95 },
-
-  title:    { fontSize: 28, fontWeight: '900', textAlign: 'center', marginBottom: 8 },
-  subtitle: { fontSize: 14, textAlign: 'center', lineHeight: 22, marginBottom: 20 },
-
+  title:       { fontSize: 28, fontWeight: '900', textAlign: 'center', marginBottom: 8 },
+  subtitle:    { fontSize: 14, textAlign: 'center', lineHeight: 22, marginBottom: 20 },
   requirements: { borderRadius: 14, padding: 16, marginBottom: 22 },
   reqTitle:     { fontWeight: '800', fontSize: 13, marginBottom: 10 },
   reqRow:       { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
   reqItem:      { fontSize: 13 },
-
-  fieldLabel: { fontSize: 14, fontWeight: '800', marginBottom: 8 },
-
+  fieldLabel:   { fontSize: 14, fontWeight: '800', marginBottom: 8 },
   inputRow: {
     flexDirection: 'row', alignItems: 'center',
     borderWidth: 1.2, borderRadius: 14,
     paddingHorizontal: 14, marginBottom: 6, gap: 10,
   },
-  input: { flex: 1, paddingVertical: 14, fontSize: 15 },
-
-  errorText: { color: '#D92027', fontSize: 12, marginBottom: 12 },
-
+  input:          { flex: 1, paddingVertical: 14, fontSize: 15 },
+  errorText:      { color: '#D92027', fontSize: 12, marginBottom: 12 },
   button:         { width: '100%', borderRadius: 16, overflow: 'hidden', marginTop: 16 },
   buttonGradient: { paddingVertical: 12, alignItems: 'center' },
   buttonText:     { color: '#FFFFFF', fontSize: 18, fontWeight: '700' },

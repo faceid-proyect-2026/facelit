@@ -6,40 +6,46 @@
 import { useState } from 'react';
 import { router } from 'expo-router';
 import { Routes } from '@/shared/constants/routes';
+import { useTranslation } from 'react-i18next';
 
-const EMAIL_REGEX           = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const EMAIL_ALLOWED_REGEX   = /^[A-Za-z0-9._%+\-@]+$/;
+const EMAIL_REGEX            = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const EMAIL_ALLOWED_REGEX    = /^[A-Za-z0-9._%+\-@]+$/;
 const PASSWORD_ALLOWED_REGEX = /^[A-Za-z0-9!@#$%^&*(),.?":{}|<>_\-+=]+$/;
 
 interface LoginForm {
-  email:    string;
+  email: string;
   password: string;
   accepted: boolean;
 }
 
 interface LoginErrors {
-  email:    string;
+  email: string;
   password: string;
-  policy:   string;
+  policy: string;
 }
 
 const initialForm: LoginForm = {
-  email:    '',
+  email: '',
   password: '',
   accepted: false,
 };
 
 const initialErrors: LoginErrors = {
-  email:    '',
+  email: '',
   password: '',
-  policy:   '',
+  policy: '',
 };
 
 export function useLoginForm() {
-  const [form, setForm]     = useState<LoginForm>(initialForm);
+  const { t } = useTranslation();
+
+  const [form, setForm] = useState<LoginForm>(initialForm);
   const [errors, setErrors] = useState<LoginErrors>(initialErrors);
 
-  const setField = <K extends keyof LoginForm>(key: K, value: LoginForm[K]) => {
+  const setField = <K extends keyof LoginForm>(
+    key: K,
+    value: LoginForm[K]
+  ) => {
     setForm(prev => ({ ...prev, [key]: value }));
     setErrors(prev => ({ ...prev, [key]: '' }));
   };
@@ -50,38 +56,38 @@ export function useLoginForm() {
 
     // Validar email
     if (!cleanEmail)
-      e.email = 'Campo vacío';
+      e.email = t('login.errors.emptyField');
     else if (/\s/.test(form.email))
-      e.email = 'No se permiten espacios';
+      e.email = t('login.errors.noSpaces');
     else if (!EMAIL_ALLOWED_REGEX.test(cleanEmail))
-      e.email = 'Caracteres no permitidos';
+      e.email = t('login.errors.invalidCharacters');
     else if (!cleanEmail.includes('@'))
-      e.email = 'Correo inválido (falta @)';
+      e.email = t('login.errors.missingAt');
     else if (!EMAIL_REGEX.test(cleanEmail))
-      e.email = 'Formato de correo inválido';
+      e.email = t('login.errors.invalidEmailFormat');
 
     // Validar contraseña
     if (!form.password)
-      e.password = 'Campo vacío';
+      e.password = t('login.errors.emptyField');
     else if (/\s/.test(form.password))
-      e.password = 'No se permiten espacios';
+      e.password = t('login.errors.noSpaces');
     else if (!PASSWORD_ALLOWED_REGEX.test(form.password))
-      e.password = 'Caracteres no permitidos';
+      e.password = t('login.errors.invalidCharacters');
     else if (form.password.length < 6)
-      e.password = 'Mínimo 6 caracteres';
+      e.password = t('login.errors.minPassword');
     else if (form.password.length > 20)
-      e.password = 'Máximo 20 caracteres';
+      e.password = t('login.errors.maxPassword');
 
     // Validar política
     if (!form.accepted)
-      e.policy = 'Debes aceptar el aviso de privacidad';
+      e.policy = t('login.errors.acceptPrivacy');
 
     // Validar credenciales mock
     if (!e.email && !e.password && !e.policy) {
       if (cleanEmail !== 'admin@test.com')
-        e.email = 'Correo electrónico no registrado';
+        e.email = t('login.errors.emailNotFound');
       else if (form.password !== '123456')
-        e.password = 'Contraseña incorrecta';
+        e.password = t('login.errors.wrongPassword');
     }
 
     return e;
@@ -89,10 +95,24 @@ export function useLoginForm() {
 
   const handleSubmit = () => {
     const nextErrors = validate();
+
     setErrors(nextErrors);
-    if (nextErrors.email || nextErrors.password || nextErrors.policy) return;
+
+    if (
+      nextErrors.email ||
+      nextErrors.password ||
+      nextErrors.policy
+    ) {
+      return;
+    }
+
     router.replace(Routes.ADMIN.DASHBOARD as any);
   };
 
-  return { form, errors, setField, handleSubmit };
+  return {
+    form,
+    errors,
+    setField,
+    handleSubmit,
+  };
 }

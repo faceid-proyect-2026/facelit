@@ -67,12 +67,12 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const changeLanguage = (lang: Language) => {
-    // Cambia en i18next → dispara evento → actualiza estado
+    setLanguage(lang);           // ← agregar esta línea
     i18n.changeLanguage(lang);
-    try {
-      globalThis.localStorage?.setItem(STORAGE_KEY, lang);
-    } catch {}
-  };
+  try {
+    globalThis.localStorage?.setItem(STORAGE_KEY, lang);
+  } catch {}
+};
 
   return (
     <I18nContext.Provider value={{ language, changeLanguage }}>

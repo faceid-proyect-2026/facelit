@@ -1,33 +1,34 @@
 // ─────────────────────────────────────────────
 //  app/auth/privacy-notice.tsx
-//  Aviso de privacidad — código limpio
+//  Aviso de privacidad — con i18n
 // ─────────────────────────────────────────────
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Linking } from 'react-native';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/shared/contexts/ThemeContext';
 import { Colors } from '@/shared/constants/colors';
 import { FontSize, FontWeight } from '@/shared/constants/typography';
 import { Routes } from '@/shared/constants/routes';
 import GradientBackground from '@/shared/components/layout/GradientBackground';
 
-// ── Datos estáticos ───────────────────────────
-const LIST_ITEMS = [
-  'Identificación y autenticación en el sistema de asistencia',
-  'Registro y control de asistencia mediante datos biométricos',
-  'Generación de reportes y estadísticas de puntualidad',
-  'Comunicación de notificaciones importantes',
-];
-
 const PRIVACY_URL = 'https://www.funcionpublica.gov.co/eva/gestornormativo/norma.php?i=49981';
 
-// ── Componente ────────────────────────────────
 export default function PrivacyNoticeScreen() {
-  const { theme, isDark } = useTheme();
+  const { t } = useTranslation();
+  const { isDark } = useTheme();
 
-  const cardBg    = isDark ? Colors.dark.surface  : Colors.white;
-  const textColor = isDark ? Colors.dark.text     : Colors.black;
+  const cardBg    = isDark ? Colors.dark.surface   : Colors.white;
+  const textColor = isDark ? Colors.dark.text      : Colors.black;
   const muted     = isDark ? Colors.dark.textMuted : Colors.light.textMuted;
-  const linkColor = isDark ? Colors.primaryLight  : Colors.primary;
+  const linkColor = isDark ? Colors.primaryLight   : Colors.primary;
+
+  // Array definido DENTRO del componente para acceder a t()
+  const LIST_ITEMS = [
+    t('privacyNotice.item1'),
+    t('privacyNotice.item2'),
+    t('privacyNotice.item3'),
+    t('privacyNotice.item4'),
+  ];
 
   return (
     <GradientBackground>
@@ -47,16 +48,15 @@ export default function PrivacyNoticeScreen() {
 
           {/* Título */}
           <Text style={[s.title, { color: textColor }]}>
-            Aviso de privacidad
+            {t('privacyNotice.title')}
           </Text>
           <Text style={[s.subtitle, { color: muted }]}>
-            Información sobre el tratamiento de sus datos personales
+            {t('privacyNotice.subtitle')}
           </Text>
 
           {/* Cuerpo */}
           <Text style={[s.body, { color: textColor }]}>
-            De conformidad con la Ley 1581 de 2012, sus datos personales serán
-            tratados con las siguientes finalidades:
+            {t('privacyNotice.body1')}
           </Text>
 
           {/* Lista */}
@@ -69,19 +69,17 @@ export default function PrivacyNoticeScreen() {
 
           {/* Advertencia */}
           <Text style={s.warning}>
-            Sus credenciales son personales e intransferibles. No las comparta
-            con terceros.
+            {t('privacyNotice.warning')}
           </Text>
 
           {/* Derechos */}
           <Text style={[s.body, { color: textColor }]}>
-            Usted tiene derecho a conocer, actualizar y rectificar sus datos
-            personales en cualquier momento.
+            {t('privacyNotice.body2')}
           </Text>
 
           {/* Link */}
           <Text style={[s.body, { color: textColor }]}>
-            <Text style={s.bold}>Más información: </Text>
+            <Text style={s.bold}>{t('privacyNotice.moreInfo')}</Text>
             <Text
               style={[s.link, { color: linkColor }]}
               onPress={() => Linking.openURL(PRIVACY_URL)}

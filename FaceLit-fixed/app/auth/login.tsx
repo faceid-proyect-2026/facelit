@@ -2,8 +2,11 @@
 //  app/auth/login.tsx
 //  Pantalla de inicio de sesión — código limpio
 //  Lógica en useLoginForm, UI aquí
+//  i18n: todos los textos desde t()
 // ─────────────────────────────────────────────
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/shared/contexts/ThemeContext';
 import { Colors } from '@/shared/constants/colors';
 import { FontSize, FontWeight } from '@/shared/constants/typography';
@@ -13,42 +16,29 @@ import GradientBackground from '@/shared/components/layout/GradientBackground';
 import AuthCard from '@/features/auth/components/AuthCard';
 import NavLink from '@/features/auth/components/NavLink';
 import { AppButton, InputField, PasswordField } from '@/shared/components/ui';
-import { Ionicons } from '@expo/vector-icons';
-
-
 
 export default function LoginScreen() {
-  const { theme, isDark } = useTheme();
+  const { theme } = useTheme();
+  const { t } = useTranslation();
   const { form, errors, setField, handleSubmit } = useLoginForm();
 
   return (
     <GradientBackground>
       <AuthCard>
 
-        {/* Logo */}
-        <Image
-          source={
-            isDark
-              ? require('@/assets/images/logo.png')
-              : require('@/assets/images/logo2.png')
-          }
-          style={s.logo}
-          resizeMode="contain"
-        />
-
         {/* Título */}
         <Text style={[s.title, { color: theme.text }]}>
-          Inicio de sesión
+          {t('login.title')}
         </Text>
         <Text style={[s.subtitle, { color: theme.textMuted }]}>
-          Ingrese sus credenciales
+          {t('login.subtitle')}
         </Text>
 
         {/* Email */}
         <InputField
-          label="Correo electrónico"
+          label={t('login.email')}
           icon="mail-outline"
-          placeholder="correo@ejemplo.com"
+          placeholder={t('login.emailPlaceholder')}
           keyboardType="email-address"
           value={form.email}
           onChangeText={(v) => setField('email', v)}
@@ -57,8 +47,8 @@ export default function LoginScreen() {
 
         {/* Contraseña */}
         <PasswordField
-          label="Contraseña"
-          placeholder="********"
+          label={t('login.password')}
+          placeholder={t('login.passwordPlaceholder')}
           value={form.password}
           onChangeText={(v) => setField('password', v)}
           error={errors.password}
@@ -82,30 +72,38 @@ export default function LoginScreen() {
             )}
           </View>
           <Text style={[s.policyText, { color: theme.text }]}>
-            ¿He leído y acepto el{' '}
+            {t('login.policyPrefix')}{' '}
           </Text>
-          <NavLink href={Routes.AUTH.PRIVACY_NOTICE} label="aviso de privacidad" />
-          <Text style={[s.policyText, { color: theme.text }]}>?</Text>
+          <NavLink href={Routes.AUTH.PRIVACY_NOTICE} label={t('login.policyLink')} />
+          <Text style={[s.policyText, { color: theme.text }]}>
+            {t('login.policySuffix')}
+          </Text>
         </TouchableOpacity>
         {errors.policy ? (
-          <Text style={s.errorText}>{errors.policy}</Text>
+          <Text style={s.errorText}>{t('login.policyError')}</Text>
         ) : null}
 
         {/* Botón login */}
         <AppButton
-          title="Iniciar sesión"
+          title={t('login.loginBtn')}
           onPress={handleSubmit}
           style={s.loginBtn}
         />
 
         {/* Links */}
         <View style={s.links}>
-          <NavLink href={Routes.AUTH.PASSWORD_RECOVERY} label="¿Olvidaste tu contraseña?" />
+          <NavLink
+            href={Routes.AUTH.PASSWORD_RECOVERY}
+            label={t('login.forgotPassword')}
+          />
           <View style={s.registerRow}>
             <Text style={[s.bottomText, { color: theme.text }]}>
-              ¿No tienes cuenta?{' '}
+              {t('login.noAccount')}{' '}
             </Text>
-            <NavLink href={Routes.AUTH.REGISTER} label="Regístrate aquí" />
+            <NavLink
+              href={Routes.AUTH.REGISTER}
+              label={t('login.registerLink')}
+            />
           </View>
         </View>
 
@@ -115,21 +113,15 @@ export default function LoginScreen() {
 }
 
 const s = StyleSheet.create({
-  logo: {
-    width:        180,
-    height:       70,
-    alignSelf:    'center',
-    marginBottom: 20,
-  },
   title: {
-    fontSize:    FontSize['3xl'],
-    fontWeight:  FontWeight.black,
-    textAlign:   'center',
+    fontSize:     FontSize['3xl'],
+    fontWeight:   FontWeight.black,
+    textAlign:    'center',
     marginBottom: 4,
   },
   subtitle: {
-    fontSize:    FontSize.base,
-    textAlign:   'center',
+    fontSize:     FontSize.base,
+    textAlign:    'center',
     marginBottom: 20,
   },
   policyRow: {
@@ -158,9 +150,9 @@ const s = StyleSheet.create({
     marginTop: 2,
   },
   loginBtn: {
-    marginTop:  20,
-    maxWidth:   280,
-    alignSelf:  'center',
+    marginTop: 20,
+    maxWidth:  280,
+    alignSelf: 'center',
   },
   links: {
     alignItems: 'center',
@@ -168,8 +160,8 @@ const s = StyleSheet.create({
     gap:        12,
   },
   registerRow: {
-    flexDirection: 'row',
-    flexWrap:      'wrap',
+    flexDirection:  'row',
+    flexWrap:       'wrap',
     justifyContent: 'center',
   },
   bottomText: {

@@ -10,7 +10,7 @@ import { useTheme } from '@/shared/contexts/ThemeContext';
 
 const GRADIENT_DARK   = ['#000000', '#06170F', '#0B2D17'] as const;
 const GRADIENT_LIGHT  = ['#F7FFF4', '#E5F7DF', '#1E4C28'] as const;
-const BUTTON_GRADIENT = ['#72C96D', '#65B361', '#4FA14B'] as const;
+const BUTTON_GRADIENT = ['#72C96D', '#468643', '#3f743d'] as const;
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     shadowRadius: 18, elevation: 8,
   },
   header: {
-    backgroundColor: '#65B361', paddingVertical: 32, alignItems: 'center',
+    backgroundColor: '#3a7437', paddingVertical: 32, alignItems: 'center',
   },
   image:  { width: 95, height: 95 },
   body: {

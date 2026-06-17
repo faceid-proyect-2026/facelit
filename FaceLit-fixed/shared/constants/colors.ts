@@ -28,20 +28,21 @@ export const Colors = {
   },
 
   // Neutros claro
-  light: {
-    background:   '#F7FFF4',
-    surface:      '#FFFFFF',
-    card:         '#FFFFFF',
-    border:       'rgba(0,0,0,0.08)',
-    inputBg:      '#FAFAFA',
-    inputBorder:  '#BBBBBB',
-    text:         '#111111',
-    textMuted:    '#555555',
-    textSecondary:'#1E1E1E',
-    placeholder:  '#AAAAAA',
-    link:         '#3A8C36',
-    gradient:     ['#F7FFF4', '#E5F7DF', '#1E4C28'] as const,
-  },
+ // Neutros claro — versión con más contraste (modo claro mejorado)
+light: {
+  background:    '#DCF0D8',   // antes #F7FFF4 — verde más perceptible, no tan blanquecino
+  surface:       '#EAF5E6',   // antes #FFFFFF — superficies con un toque verde suave
+  card:          '#EAF5E6',   // igual que surface para consistencia
+  border:        'rgba(0,0,0,0.14)',   // antes 0.08 — bordes más visibles
+  inputBg:       '#DFF0DA',   // antes #FAFAFA — input con tono verde tenue
+  inputBorder:   '#8AAF86',   // antes #BBBBBB — borde más verde y definido
+  text:          '#111111',   // sin cambio — ya es oscuro ✓
+  textMuted:     '#3A3A3A',   // antes #555555 — más legible sobre fondo oscurecido
+  textSecondary: '#1E1E1E',   // sin cambio ✓
+  placeholder:   '#7A9977',   // antes #AAAAAA — placeholder con identidad verde
+  link:          '#2E7229',   // antes #3A8C36 — un poco más oscuro para más contraste
+  gradient:      ['#DCF0D8', '#C5E3BE', '#1E4C28'] as const,  // inicio más oscuro
+},
 
   // Estado
   error:    '#D92027',

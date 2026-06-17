@@ -58,7 +58,7 @@ export default function PasswordRecoveryScreen() {
       colors={
         isDark
           ? ['#000000', '#06170F', '#0B2D17']
-          : ['#F7FFF4', '#E5F7DF', '#1E4C28']
+          : ['#DCF0D8', '#C5E3BE', '#1E4C28']
       }
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}

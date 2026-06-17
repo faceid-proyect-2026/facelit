@@ -113,8 +113,9 @@ export default function LandingScreen() {
   const isWide            = width >= 820;
 
   // ── Colores semánticos locales ──
-  const cardBg     = isDark ? '#111827'                 : Colors.white;
-  const softCardBg = isDark ? '#1A1F2E'                 : '#F4FAF2';
+  // 1. Colores semánticos locales — solo tocar los valores light
+const cardBg     = isDark ? '#111827'  : '#EAF5E6';   // antes Colors.white — menos contraste
+const softCardBg = isDark ? '#1A1F2E'  : '#D6EDD0';   // antes #F4FAF2 — más presencia
   const heading    = isDark ? Colors.dark.text          : '#0D1F0A';
   const body       = isDark ? Colors.dark.textSecondary : '#3D5C3A';
   const muted      = isDark ? Colors.dark.textMuted     : Colors.light.textMuted;
@@ -155,7 +156,8 @@ export default function LandingScreen() {
     <LinearGradient
       colors={isDark
         ? ['#050505', '#071810', '#0D2B1A']
-        : ['#FFFFFF', '#F2FFF0', '#E8F8E4']}
+        : ['rgb(255, 255, 255)', '#bae2b2', '#ffffff']
+      }
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={s.page}

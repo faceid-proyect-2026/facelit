@@ -9,8 +9,8 @@ import { useTheme } from '@/shared/contexts/ThemeContext';
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const GRADIENT_DARK   = ['#000000', '#06170F', '#0B2D17'] as const;
-const GRADIENT_LIGHT  = ['#F7FFF4', '#E5F7DF', '#1E4C28'] as const;
-const BUTTON_GRADIENT = ['#72C96D', '#468643', '#3f743d'] as const;
+const GRADIENT_LIGHT  = ['#DCF0D8', '#C5E3BE', '#1E4C28'] as const;
+const BUTTON_GRADIENT = ['#72C96D', '#61a55d', '#3c673a'] as const;
 
 // ─── Component ────────────────────────────────────────────────────────────────
 

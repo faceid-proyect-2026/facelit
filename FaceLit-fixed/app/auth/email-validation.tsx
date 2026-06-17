@@ -1,72 +1,41 @@
 // ─────────────────────────────────────────────
 //  app/auth/email-validation.tsx
-//  Pantalla de verificación de código de correo
-//  Recibe el email por parámetro desde register
-//  Al verificar exitosamente → email-validated-success
 // ─────────────────────────────────────────────
 import { useState, useEffect } from 'react';
-import {
-  View, Text, TextInput, TouchableOpacity,
-  StyleSheet, ScrollView,
-} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
+import GradientBackground from '@/shared/components/layout/GradientBackground';
+import { AppButton, InputField } from '@/shared/components/ui';
 import { useTheme } from '@/shared/contexts/ThemeContext';
+import { Colors } from '@/shared/constants/colors';
+import { FontSize, FontWeight } from '@/shared/constants/typography';
 
-// Código mock para demo — en producción viene del backend
+// ─── Constants ────────────────────────────────
 const CODE_MOCK    = '123456';
-const INITIAL_TIME = 5 * 60; // 5 minutos
+const INITIAL_TIME = 5 * 60;
 
+// ─── Helpers ──────────────────────────────────
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60).toString().padStart(2, '0');
   const s = (seconds % 60).toString().padStart(2, '0');
   return `${m}:${s}`;
 }
 
-export default function EmailValidationScreen() {
-  const { theme, isDark } = useTheme();
-
-  // Recibe el email desde register via params
-  const { email } = useLocalSearchParams<{ email: string }>();
-
-  const [code, setCode]         = useState('');
+// ─── Hook: lógica de validación ───────────────
+function useEmailValidation(t: (key: string) => string) {
+  const [code,     setCode]     = useState('');
   const [timeLeft, setTimeLeft] = useState(INITIAL_TIME);
-  const [expired, setExpired]   = useState(false);
-  const [error, setError]       = useState('');
+  const [expired,  setExpired]  = useState(false);
+  const [error,    setError]    = useState('');
 
-  const text        = isDark ? '#FFFFFF' : '#111111';
-  const muted       = isDark ? '#CAD6C8' : '#555555';
-  const cardBg      = isDark ? '#07120D' : '#FFFFFF';
-  const inputBg     = isDark ? 'rgba(255,255,255,0.04)' : '#FAFAFA';
-  const inputBorder = isDark ? 'rgba(255,255,255,0.30)' : '#BBBBBB';
-
-  // Temporizador
   useEffect(() => {
     if (timeLeft <= 0) { setExpired(true); return; }
     const timer = setInterval(() => setTimeLeft((p) => p - 1), 1000);
     return () => clearInterval(timer);
   }, [timeLeft]);
-
-  const timerColor = timeLeft > 60 ? '#E89B2C' : '#D92027';
-
-  const handleVerify = () => {
-    if (expired) {
-      setError('El código ha expirado. Solicita uno nuevo.');
-      return;
-    }
-    if (code.length !== 6) {
-      setError('Debes ingresar los 6 dígitos del código.');
-      return;
-    }
-    if (code !== CODE_MOCK) {
-      setError('Código incorrecto. Intenta de nuevo.');
-      return;
-    }
-    setError('');
-    router.push({ pathname: '/auth/email-validated-success' as any, params: { email } });
-  };
 
   const handleResend = () => {
     setCode('');
@@ -75,161 +44,182 @@ export default function EmailValidationScreen() {
     setTimeLeft(INITIAL_TIME);
   };
 
+  const validate = (): boolean => {
+    if (expired) { setError(t('emailValidation.errors.expired')); return false; }
+    if (code.length !== 6) { setError(t('emailValidation.errors.length'));  return false; }
+    if (code !== CODE_MOCK) { setError(t('emailValidation.errors.invalid')); return false; }
+    return true;
+  };
+
+  return {
+    code, setCode, timeLeft, expired,
+    error, setError, handleResend, validate,
+  };
+}
+
+// ─── Sub-component: Timer badge ───────────────
+function TimerBadge({ timeLeft }: { timeLeft: number }) {
+  const { t } = useTranslation();
+  const color = timeLeft > 60 ? Colors.warning : Colors.error;
+
   return (
-    <LinearGradient
-      colors={isDark ? ['#000000', '#06170F', '#0B2D17'] : ['#F7FFF4', '#E5F7DF', '#1E4C28']}
-      start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-      style={s.gradient}
-    >
-      <View style={[s.arcTop,    { backgroundColor: isDark ? 'rgba(101,179,97,0.08)' : 'rgba(20,70,28,0.18)' }]} />
-      <View style={[s.arcBottom, { backgroundColor: isDark ? 'rgba(101,179,97,0.22)' : 'rgba(101,179,97,0.28)' }]} />
-
-      <SafeAreaView style={s.safe}>
-        <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-          <View style={[s.card, { backgroundColor: cardBg, shadowColor: isDark ? '#000' : '#1C3A1D' }]}>
-
-            {/* Volver */}
-            <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-              <Ionicons name="arrow-back-outline" size={16} color={theme.primary} />
-              <Text style={[s.backText, { color: theme.primary }]}>Volver al registro</Text>
-            </TouchableOpacity>
-
-            {/* Ícono reloj */}
-            <View style={[s.clockCircle, { borderColor: theme.primary }]}>
-              <Ionicons name="timer-outline" size={54} color={theme.primary} />
-            </View>
-
-            {/* Título */}
-            <Text style={[s.title, { color: text }]}>Verifica tu correo</Text>
-
-            {/* Subtítulo + email */}
-            <Text style={[s.subtitle, { color: muted }]}>
-              Se ha enviado un código de 6 dígitos a
-            </Text>
-            <Text style={[s.emailText, { color: theme.primary }]}>
-              {email || 'correo@ejemplo.com'}
-            </Text>
-
-            {/* Badge timer */}
-            <View style={[s.timerBadge, { backgroundColor: timerColor }]}>
-              <Ionicons name="alarm-outline" size={14} color="#FFFFFF" />
-              <Text style={s.timerText}>
-                Tiempo restante {formatTime(timeLeft)}
-              </Text>
-            </View>
-
-            {/* Reenviar */}
-            <TouchableOpacity style={s.resendBtn} onPress={handleResend}>
-              <Text style={[s.resendText, { color: theme.primary }]}>
-                Reenviar código
-              </Text>
-            </TouchableOpacity>
-
-            {/* Campo código */}
-            <Text style={[s.inputLabel, { color: text }]}>
-              Código de verificación
-            </Text>
-            <TextInput
-              style={[s.codeInput, {
-                color: text,
-                backgroundColor: inputBg,
-                borderColor: error ? '#D92027' : inputBorder,
-              }]}
-              value={code}
-              onChangeText={(v) => { setCode(v.replace(/\D/g, '')); setError(''); }}
-              placeholder="X X X X X X"
-              placeholderTextColor={isDark ? '#4A5E49' : '#BBBBBB'}
-              keyboardType="number-pad"
-              maxLength={6}
-            />
-            {error ? <Text style={s.errorText}>{error}</Text> : null}
-
-            <Text style={[s.hint, { color: muted }]}>
-              Ingresa el código de 6 dígitos enviado a tu correo
-            </Text>
-
-            {/* Botón verificar */}
-            <TouchableOpacity
-              style={[s.button, expired && s.buttonDisabled]}
-              onPress={handleVerify}
-              disabled={expired}
-            >
-              <LinearGradient
-                colors={expired ? ['#888', '#666'] : ['#72C96D', '#65B361', '#4FA14B']}
-                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                style={s.buttonGradient}
-              >
-                <Text style={s.buttonText}>Verificar código</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-
-            {/* Aviso código demo */}
-            <View style={[s.demoBox, { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#F5F5F5' }]}>
-              <Ionicons name="information-circle-outline" size={13} color={muted} />
-              <Text style={[s.demoText, { color: muted }]}>
-                Demo: el código es{' '}
-                <Text style={{ fontWeight: '800', color: theme.primary }}>123456</Text>
-              </Text>
-            </View>
-
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </LinearGradient>
+    <View style={[badge.wrap, { backgroundColor: color }]}>
+      <Ionicons name="alarm-outline" size={14} color={Colors.white} />
+      <Text style={badge.text}>
+        {t('emailValidation.timerLabel')}{formatTime(timeLeft)}
+      </Text>
+    </View>
   );
 }
 
-const s = StyleSheet.create({
-  gradient:  { flex: 1 },
-  safe:      { flex: 1 },
-  scroll:    { flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 32, paddingHorizontal: 20 },
-  arcTop:    { position: 'absolute', width: 300, height: 420, right: -120, top: -90, borderRadius: 200 },
-  arcBottom: { position: 'absolute', width: 420, height: 220, left: -120, bottom: -30, borderRadius: 180 },
+const badge = StyleSheet.create({
+  wrap: { flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 12, paddingVertical: 10, paddingHorizontal: 18, alignSelf: 'center', marginBottom: 14 },
+  text: { color: Colors.white, fontWeight: FontWeight.bold, fontSize: FontSize.md },
+});
 
+// ─── Sub-component: Demo box ──────────────────
+function DemoBox() {
+  const { t }       = useTranslation();
+  const { theme }   = useTheme();
+
+  return (
+    <View style={[demo.wrap, { backgroundColor: theme.border }]}>
+      <Ionicons name="information-circle-outline" size={13} color={theme.textMuted} />
+      <Text style={[demo.text, { color: theme.textMuted }]}>
+        {t('emailValidation.demoText')}{' '}
+        <Text style={{ fontWeight: FontWeight.extrabold, color: theme.primary }}>
+          {CODE_MOCK}
+        </Text>
+      </Text>
+    </View>
+  );
+}
+
+const demo = StyleSheet.create({
+  wrap: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 16, padding: 10, borderRadius: 8 },
+  text: { fontSize: FontSize.sm },
+});
+
+// ─── Screen ───────────────────────────────────
+export default function EmailValidationScreen() {
+  const { t }     = useTranslation();
+  const { theme } = useTheme();
+  const { email } = useLocalSearchParams<{ email: string }>();
+
+  const {
+    code, setCode, timeLeft, expired,
+    error, setError, handleResend, validate,
+  } = useEmailValidation(t);
+
+  const handleVerify = () => {
+    if (!validate()) return;
+    setError('');
+    router.push({ pathname: '/auth/email-validated-success' as any, params: { email } });
+  };
+
+  return (
+    <GradientBackground>
+      <ScrollView
+        contentContainerStyle={s.scroll}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={[s.card, { backgroundColor: theme.card }]}>
+
+          {/* Volver */}
+          <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
+            <Ionicons name="arrow-back-outline" size={16} color={theme.primary} />
+            <Text style={[s.backText, { color: theme.primary }]}>
+              {t('emailValidation.backBtn')}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Ícono */}
+          <View style={[s.clockCircle, { borderColor: theme.primary }]}>
+            <Ionicons name="timer-outline" size={54} color={theme.primary} />
+          </View>
+
+          {/* Título */}
+          <Text style={[s.title, { color: theme.text }]}>
+            {t('emailValidation.title')}
+          </Text>
+
+          {/* Subtítulo + email */}
+          <Text style={[s.subtitle, { color: theme.textMuted }]}>
+            {t('emailValidation.subtitle')}
+          </Text>
+          <Text style={[s.emailText, { color: theme.primary }]}>
+            {email || 'correo@ejemplo.com'}
+          </Text>
+
+          {/* Timer */}
+          <TimerBadge timeLeft={timeLeft} />
+
+          {/* Reenviar */}
+          <TouchableOpacity style={s.resendBtn} onPress={handleResend}>
+            <Text style={[s.resendText, { color: theme.primary }]}>
+              {t('emailValidation.resendBtn')}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Input código — usa InputField existente */}
+          <InputField
+            label={t('emailValidation.inputLabel')}
+            value={code}
+            onChangeText={(v) => { setCode(v.replace(/\D/g, '')); setError(''); }}
+            placeholder={t('emailValidation.placeholder')}
+            keyboardType="number-pad"
+            maxLength={6}
+            error={error}
+            style={s.codeInputText}
+          />
+
+          <Text style={[s.hint, { color: theme.textMuted }]}>
+            {t('emailValidation.hint')}
+          </Text>
+
+          {/* Botón verificar — usa AppButton existente */}
+          <AppButton
+            title={t('emailValidation.verifyBtn')}
+            onPress={handleVerify}
+            disabled={expired}
+          />
+
+          {/* Demo */}
+          <DemoBox />
+
+        </View>
+      </ScrollView>
+    </GradientBackground>
+  );
+}
+
+// ─── Styles ───────────────────────────────────
+const s = StyleSheet.create({
+  scroll: {
+    flexGrow: 1, alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 32, paddingHorizontal: 20,
+  },
   card: {
     width: '100%', maxWidth: 460, borderRadius: 26,
     paddingHorizontal: 24, paddingVertical: 28,
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.18, shadowRadius: 18, elevation: 8,
   },
-
-  backBtn:  { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 20 },
-  backText: { fontSize: 14, fontWeight: '700' },
-
+  backBtn:   { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 20 },
+  backText:  { fontSize: FontSize.base, fontWeight: FontWeight.bold },
   clockCircle: {
-    width: 110, height: 110, borderRadius: 55,
-    borderWidth: 4, alignItems: 'center', justifyContent: 'center',
+    width: 110, height: 110, borderRadius: 55, borderWidth: 4,
+    alignItems: 'center', justifyContent: 'center',
     alignSelf: 'center', marginBottom: 20,
   },
-
-  title:     { fontSize: 26, fontWeight: '900', textAlign: 'center', marginBottom: 8 },
-  subtitle:  { fontSize: 14, textAlign: 'center', lineHeight: 20 },
-  emailText: { fontSize: 14, textAlign: 'center', fontWeight: '700', textDecorationLine: 'underline', marginBottom: 20, marginTop: 4 },
-
-  timerBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    borderRadius: 12, paddingVertical: 10, paddingHorizontal: 18,
-    alignSelf: 'center', marginBottom: 14,
-  },
-  timerText: { color: '#FFFFFF', fontWeight: '700', fontSize: 13 },
-
-  resendBtn:  { alignSelf: 'center', marginBottom: 26 },
-  resendText: { fontWeight: '700', textDecorationLine: 'underline', fontSize: 14 },
-
-  inputLabel: { fontSize: 14, fontWeight: '800', marginBottom: 8 },
-  codeInput: {
-    borderWidth: 1.2, borderRadius: 14,
-    paddingVertical: 16, textAlign: 'center',
-    fontSize: 24, letterSpacing: 10,
-  },
-  errorText: { color: '#D92027', fontSize: 12, marginTop: 6 },
-  hint:      { fontSize: 12, marginTop: 8, marginBottom: 22 },
-
-  button:         { width: '100%', borderRadius: 16, overflow: 'hidden' },
-  buttonDisabled: { opacity: 0.6 },
-  buttonGradient: { paddingVertical: 14, alignItems: 'center' },
-  buttonText:     { color: '#FFFFFF', fontSize: 17, fontWeight: '700' },
-
-  demoBox:  { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 16, padding: 10, borderRadius: 8 },
-  demoText: { fontSize: 12 },
+  title:         { fontSize: FontSize['3xl'], fontWeight: FontWeight.black, textAlign: 'center', marginBottom: 8 },
+  subtitle:      { fontSize: FontSize.base, textAlign: 'center', lineHeight: 20 },
+  emailText:     { fontSize: FontSize.base, textAlign: 'center', fontWeight: FontWeight.bold, textDecorationLine: 'underline', marginBottom: 20, marginTop: 4 },
+  resendBtn:     { alignSelf: 'center', marginBottom: 26 },
+  resendText:    { fontWeight: FontWeight.bold, textDecorationLine: 'underline', fontSize: FontSize.base },
+  codeInputText: { textAlign: 'center', fontSize: 24, letterSpacing: 10 },
+  hint:          { fontSize: FontSize.sm, marginTop: 8, marginBottom: 22 },
 });

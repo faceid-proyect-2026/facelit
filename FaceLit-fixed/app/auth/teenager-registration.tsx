@@ -1,54 +1,82 @@
 // ─────────────────────────────────────────────
 //  app/auth/teenager-registration.tsx
-//  Registro facial — CÁMARA REAL
+//  Registro facial — código limpio + i18n
 //
-//  • Móvil (Android/iOS): usa expo-camera (CameraView)
-//  • Web / PC:            usa la API nativa del navegador
-//                         (navigator.mediaDevices.getUserMedia)
+//  • Móvil (Android/iOS): expo-camera (CameraView)
+//  • Web: MediaDevices API del navegador
 //
-//  Instalación requerida:
-//    npx expo install expo-camera
+//  Validaciones:
+//  1. "Acércate más" — simulada, tras 1.5s pasa a "posición correcta"
+//  2. Brillo de imagen — real, lee píxeles del canvas/foto
 // ─────────────────────────────────────────────
 import { useState, useRef, useCallback, useEffect } from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  ActivityIndicator,
-  Image,
-  Platform,
+  View, Text, TouchableOpacity, StyleSheet,
+  ScrollView, ActivityIndicator, Image, Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from '@/shared/contexts/ThemeContext';
-
-// expo-camera solo se importa en nativo (no en web)
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
+import { useTheme } from '@/shared/contexts/ThemeContext';
+import { Colors } from '@/shared/constants/colors';
+import { FontSize, FontWeight } from '@/shared/constants/typography';
+import { Routes } from '@/shared/constants/routes';
+import GradientBackground from '@/shared/components/layout/GradientBackground';
+
+// ── Constantes ────────────────────────────────
+const INSTRUCTION_KEYS = [
+  'facialReg.instr1',
+  'facialReg.instr2',
+  'facialReg.instr3',
+  'facialReg.instr4',
+  'facialReg.instr5',
+];
+
+const POSITIONING_DELAY_MS  = 1500; // tiempo simulado de "acércate más"
+const MIN_BRIGHTNESS_SCORE  = 60;   // umbral de brillo (0–255)
+
+type ScreenState = 'idle' | 'requesting' | 'positioning' | 'ready' | 'captured';
+type CaptureQuality = 'checking' | 'good' | 'lowLight';
+
+// ── Helper: brillo promedio de una imagen ─────
+function getAverageBrightness(canvas: HTMLCanvasElement): number {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return 255;
+
+  const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  let total = 0;
+  const pixelCount = data.length / 4;
+
+  for (let i = 0; i < data.length; i += 4) {
+    // Luminancia perceptual aproximada
+    total += data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+  }
+  return total / pixelCount;
+}
 
 // ─────────────────────────────────────────────
-//  Componente de cámara exclusivo para WEB
-//  Usa la MediaDevices API del navegador directamente.
+//  Cámara web — MediaDevices API
 // ─────────────────────────────────────────────
-type WebCameraProps = {
-  onCapture: (dataUri: string) => void;
+interface WebCameraProps {
   primaryColor: string;
   isTaking: boolean;
+  isPositioning: boolean;
+  onCapture: (dataUri: string, brightness: number) => void;
   onShutter: () => void;
-};
+}
 
-function WebCamera({ onCapture, primaryColor, isTaking, onShutter }: WebCameraProps) {
+function WebCamera({
+  primaryColor, isTaking, isPositioning, onCapture, onShutter,
+}: WebCameraProps) {
+  const { t } = useTranslation();
   const videoRef  = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Iniciar stream de cámara web
   useEffect(() => {
     let cancelled = false;
 
@@ -56,7 +84,7 @@ function WebCamera({ onCapture, primaryColor, isTaking, onShutter }: WebCameraPr
       .getUserMedia({ video: { facingMode: 'user', width: 640, height: 480 } })
       .then((stream) => {
         if (cancelled) {
-          stream.getTracks().forEach((t) => t.stop());
+          stream.getTracks().forEach((track) => track.stop());
           return;
         }
         streamRef.current = stream;
@@ -68,20 +96,16 @@ function WebCamera({ onCapture, primaryColor, isTaking, onShutter }: WebCameraPr
           };
         }
       })
-      .catch((err) => {
-        if (!cancelled) {
-          console.error('WebCamera error:', err);
-          setError('No se pudo acceder a la cámara. Verifica los permisos del navegador.');
-        }
+      .catch(() => {
+        if (!cancelled) setError(t('facialReg.permissionDenied'));
       });
 
     return () => {
       cancelled = true;
-      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current?.getTracks().forEach((track) => track.stop());
     };
-  }, []);
+  }, [t]);
 
-  // Capturar frame del video como data URI
   const capture = useCallback(() => {
     const video  = videoRef.current;
     const canvas = canvasRef.current;
@@ -92,20 +116,21 @@ function WebCamera({ onCapture, primaryColor, isTaking, onShutter }: WebCameraPr
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Espejear horizontalmente (selfie natural)
     ctx.translate(canvas.width, 0);
     ctx.scale(-1, 1);
     ctx.drawImage(video, 0, 0);
 
+    const brightness = getAverageBrightness(canvas);
     const dataUri = canvas.toDataURL('image/jpeg', 0.85);
-    onCapture(dataUri);
+
+    onCapture(dataUri, brightness);
     onShutter();
   }, [ready, onCapture, onShutter]);
 
   if (error) {
     return (
-      <View style={wc.errorBox}>
-        <Ionicons name="alert-circle-outline" size={36} color="#FF6B6B" />
+      <View style={wc.centerBox}>
+        <Ionicons name="alert-circle-outline" size={36} color={Colors.error} />
         <Text style={wc.errorText}>{error}</Text>
       </View>
     );
@@ -113,108 +138,98 @@ function WebCamera({ onCapture, primaryColor, isTaking, onShutter }: WebCameraPr
 
   return (
     <View style={StyleSheet.absoluteFill}>
-      {/* Video nativo del navegador — espejado para selfie */}
       {/* @ts-ignore — elemento HTML nativo */}
       <video
         ref={videoRef}
         style={{
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          transform: 'scaleX(-1)',   // espejo horizontal
+          width: '100%', height: '100%', objectFit: 'cover',
+          transform: 'scaleX(-1)',
           display: ready ? 'block' : 'none',
         }}
-        muted
-        playsInline
-        autoPlay
+        muted playsInline autoPlay
       />
-
-      {/* Canvas oculto para captura */}
       {/* @ts-ignore */}
       <canvas ref={canvasRef} style={{ display: 'none' }} />
 
-      {/* Spinner mientras carga */}
       {!ready && (
-        <View style={wc.loadingBox}>
+        <View style={wc.centerBox}>
           <ActivityIndicator size="large" color={primaryColor} />
-          <Text style={wc.loadingText}>Iniciando cámara…</Text>
+          <Text style={wc.loadingText}>{t('facialReg.requestingPermission')}</Text>
         </View>
       )}
 
-      {/* Marco guía de rostro */}
       {ready && (
-        <View style={wc.guideContainer} pointerEvents="none">
-          <View style={[wc.faceGuide, { borderColor: primaryColor }]} />
-        </View>
+        <FaceGuideOverlay primaryColor={primaryColor} isPositioning={isPositioning} />
       )}
 
-      {/* Botón de captura */}
       {ready && (
-        <View style={wc.shutterContainer}>
-          <TouchableOpacity
-            onPress={capture}
-            disabled={isTaking}
-            style={[wc.shutterOuter, { borderColor: primaryColor }]}
-            activeOpacity={0.8}
-          >
-            {isTaking ? (
-              <ActivityIndicator color={primaryColor} />
-            ) : (
-              <View style={[wc.shutterInner, { backgroundColor: primaryColor }]} />
-            )}
-          </TouchableOpacity>
-        </View>
+        <ShutterButton
+          primaryColor={primaryColor}
+          disabled={isTaking || isPositioning}
+          loading={isTaking}
+          onPress={capture}
+        />
       )}
     </View>
   );
 }
 
 const wc = StyleSheet.create({
-  errorBox: {
-    flex: 1, alignItems: 'center', justifyContent: 'center',
-    gap: 12, padding: 20,
-  },
-  errorText: { color: '#FF6B6B', fontSize: 13, textAlign: 'center', lineHeight: 19 },
-  loadingBox: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: 'center', justifyContent: 'center', gap: 12,
-  },
-  loadingText: { color: '#AAAAAA', fontSize: 13 },
-  guideContainer: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  faceGuide: {
-    width: 170, height: 210,
-    borderRadius: 90,
-    borderWidth: 2,
-    borderStyle: 'dashed',
-  },
-  shutterContainer: {
-    position: 'absolute',
-    bottom: 20, left: 0, right: 0,
-    alignItems: 'center',
-  },
-  shutterOuter: {
-    width: 64, height: 64, borderRadius: 32,
-    borderWidth: 3,
-    alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.18)',
-  },
-  shutterInner: { width: 46, height: 46, borderRadius: 23 },
+  centerBox:   { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 20 },
+  errorText:   { color: Colors.error, fontSize: FontSize.md, textAlign: 'center', lineHeight: 19 },
+  loadingText: { color: '#AAAAAA', fontSize: FontSize.md },
 });
 
 // ─────────────────────────────────────────────
-//  Constantes
+//  Sub-componentes compartidos
 // ─────────────────────────────────────────────
-const INSTRUCTIONS = [
-  'facialReg.instr1',
-  'facialReg.instr2',
-  'facialReg.instr3',
-  'facialReg.instr4',
-];
+function FaceGuideOverlay({
+  primaryColor, isPositioning,
+}: { primaryColor: string; isPositioning: boolean }) {
+  const { t } = useTranslation();
 
-type ScreenState = 'idle' | 'requesting' | 'camera' | 'captured';
+  return (
+    <View style={s.faceGuideContainer} pointerEvents="none">
+      <View style={[
+        s.faceGuide,
+        { borderColor: isPositioning ? Colors.warning : primaryColor },
+      ]} />
+      <View style={[
+        s.positionBadge,
+        { backgroundColor: isPositioning ? Colors.warning : primaryColor },
+      ]}>
+        <Ionicons
+          name={isPositioning ? 'resize-outline' : 'checkmark-circle'}
+          size={14} color={Colors.white}
+        />
+        <Text style={s.positionBadgeText}>
+          {isPositioning ? t('facialReg.moveCloser') : t('facialReg.goodPosition')}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+function ShutterButton({
+  primaryColor, disabled, loading, onPress,
+}: { primaryColor: string; disabled: boolean; loading: boolean; onPress: () => void }) {
+  return (
+    <View style={s.shutterContainer}>
+      <TouchableOpacity
+        onPress={onPress}
+        disabled={disabled}
+        style={[s.shutterOuter, { borderColor: primaryColor, opacity: disabled ? 0.5 : 1 }]}
+        activeOpacity={0.8}
+      >
+        {loading ? (
+          <ActivityIndicator color={primaryColor} />
+        ) : (
+          <View style={[s.shutterInner, { backgroundColor: primaryColor }]} />
+        )}
+      </TouchableOpacity>
+    </View>
+  );
+}
 
 // ─────────────────────────────────────────────
 //  Pantalla principal
@@ -222,36 +237,47 @@ type ScreenState = 'idle' | 'requesting' | 'camera' | 'captured';
 export default function TeenagerRegistrationScreen() {
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
-
-  // Hook de permisos de expo-camera (solo relevante en nativo)
   const [permission, requestPermission] = useCameraPermissions();
 
-  const [screenState, setScreenState] = useState<ScreenState>('idle');
-  const [photoUri, setPhotoUri]       = useState<string | null>(null);
-  const [isTaking, setIsTaking]       = useState(false);
+  const [screenState, setScreenState]     = useState<ScreenState>('idle');
+  const [photoUri, setPhotoUri]           = useState<string | null>(null);
+  const [isTaking, setIsTaking]           = useState(false);
+  const [quality, setQuality]             = useState<CaptureQuality>('checking');
 
   const cameraRef = useRef<CameraView>(null);
-
+  const positioningTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isWeb = Platform.OS === 'web';
+  const isPositioning = screenState === 'positioning';
 
-  // ── Colores según tema ───────────────────────
-  const text       = isDark ? '#FFFFFF' : '#111111';
-  const muted      = isDark ? '#A8BCA6' : '#555555';
-  const cardBg     = isDark ? '#07120D' : '#FFFFFF';
-  const cardBorder = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+  const text       = isDark ? Colors.dark.text      : Colors.light.text;
+  const muted      = isDark ? Colors.dark.textMuted  : Colors.light.textMuted;
+  const cardBg     = isDark ? Colors.dark.surface    : Colors.white;
+  const cardBorder = isDark ? Colors.dark.border     : Colors.light.border;
   const instrBg    = isDark ? 'rgba(101,179,97,0.08)' : 'rgba(101,179,97,0.07)';
 
-  // ── Abrir cámara ────────────────────────────
+  useEffect(() => {
+    return () => {
+      if (positioningTimer.current) clearTimeout(positioningTimer.current);
+    };
+  }, []);
+
+  // ── Iniciar simulación de "acércate más" → "posición correcta" ──
+  const startPositioningSimulation = useCallback(() => {
+    setScreenState('positioning');
+    positioningTimer.current = setTimeout(() => {
+      setScreenState('ready');
+    }, POSITIONING_DELAY_MS);
+  }, []);
+
+  // ── Abrir cámara ──────────────────────────────
   const handleOpenCamera = useCallback(async () => {
-    // En web los permisos los gestiona el navegador al llamar getUserMedia
     if (isWeb) {
-      setScreenState('camera');
+      startPositioningSimulation();
       return;
     }
 
-    // Nativo: gestión de permisos con expo-camera
     if (permission?.granted) {
-      setScreenState('camera');
+      startPositioningSimulation();
       return;
     }
 
@@ -263,63 +289,66 @@ export default function TeenagerRegistrationScreen() {
     setScreenState('requesting');
     const result = await requestPermission();
     if (result.granted) {
-      setScreenState('camera');
+      startPositioningSimulation();
     } else {
       setScreenState('idle');
       alert(t('facialReg.permissionDenied'));
     }
-  }, [isWeb, permission, requestPermission, t]);
+  }, [isWeb, permission, requestPermission, t, startPositioningSimulation]);
 
-  // ── Tomar foto (nativo) ──────────────────────
+  // ── Evaluar calidad por brillo ────────────────
+  const evaluateBrightness = useCallback((brightness: number) => {
+    setQuality(brightness < MIN_BRIGHTNESS_SCORE ? 'lowLight' : 'good');
+  }, []);
+
+  // ── Captura nativa (expo-camera) ──────────────
   const handleTakePhotoNative = useCallback(async () => {
     if (!cameraRef.current || isTaking) return;
     setIsTaking(true);
     try {
-      const photo = await cameraRef.current.takePictureAsync({
-        quality: 0.7,
-        base64: false,
-        skipProcessing: false,
-      });
+      const photo = await cameraRef.current.takePictureAsync({ quality: 0.7 });
       if (photo?.uri) {
         setPhotoUri(photo.uri);
+        // En nativo no hay acceso directo a píxeles sin librerías extra,
+        // así que se asume buena calidad salvo casos extremos
+        setQuality('good');
         setScreenState('captured');
       }
-    } catch (err) {
-      console.error('Error al tomar foto:', err);
+    } catch {
       alert(t('facialReg.captureError'));
     } finally {
       setIsTaking(false);
     }
   }, [isTaking, t]);
 
-  // ── Callback de captura web ──────────────────
-  // WebCamera llama a esto con el data URI del canvas
-  const handleWebCapture = useCallback((dataUri: string) => {
+  // ── Captura web (con análisis real de brillo) ─
+  const handleWebCapture = useCallback((dataUri: string, brightness: number) => {
     setPhotoUri(dataUri);
+    evaluateBrightness(brightness);
     setScreenState('captured');
-  }, []);
+  }, [evaluateBrightness]);
 
-  // Marca isTaking=true cuando el usuario presiona el obturador web
   const handleWebShutter = useCallback(() => {
     setIsTaking(true);
-    // Resetear tras un frame (la captura es síncrona en WebCamera)
     setTimeout(() => setIsTaking(false), 200);
   }, []);
 
-  // ── Retomar ──────────────────────────────────
+  // ── Retomar ────────────────────────────────────
   const handleRetake = useCallback(() => {
     setPhotoUri(null);
-    setScreenState('camera');
-  }, []);
+    setQuality('checking');
+    startPositioningSimulation();
+  }, [startPositioningSimulation]);
 
-  // ── Finalizar ────────────────────────────────
+  // ── Finalizar ──────────────────────────────────
   const handleFinish = useCallback(() => {
-    if (screenState !== 'captured' || !photoUri) return;
-    // Aquí enviarías photoUri a tu backend / Raspberry Pi
-    router.replace('/auth/registration-success');
-  }, [screenState, photoUri]);
+    if (screenState !== 'captured' || !photoUri || quality !== 'good') return;
+    router.replace(Routes.AUTH.REGISTRATION_SUCCESS as any);
+  }, [screenState, photoUri, quality]);
 
-  // ── Renderizado del área de cámara ───────────
+  const canFinish = screenState === 'captured' && quality === 'good';
+
+  // ── Render del área de cámara ──────────────────
   const renderCameraArea = () => {
     if (screenState === 'requesting') {
       return (
@@ -332,20 +361,19 @@ export default function TeenagerRegistrationScreen() {
       );
     }
 
-    if (screenState === 'camera') {
-      // ── Web: componente nativo del navegador ──
+    if (screenState === 'positioning' || screenState === 'ready') {
       if (isWeb) {
         return (
           <WebCamera
             primaryColor={theme.primary}
             isTaking={isTaking}
+            isPositioning={isPositioning}
             onCapture={handleWebCapture}
             onShutter={handleWebShutter}
           />
         );
       }
 
-      // ── Nativo: expo-camera ───────────────────
       return (
         <View style={StyleSheet.absoluteFill}>
           <CameraView
@@ -353,44 +381,33 @@ export default function TeenagerRegistrationScreen() {
             style={StyleSheet.absoluteFill}
             facing={'front' as CameraType}
           />
-          <View style={s.faceGuideContainer} pointerEvents="none">
-            <View style={[s.faceGuide, { borderColor: theme.primary }]} />
-          </View>
-          <View style={s.shutterContainer} pointerEvents="box-none">
-            <TouchableOpacity
-              onPress={handleTakePhotoNative}
-              disabled={isTaking}
-              style={[s.shutterOuter, { borderColor: theme.primary }]}
-              activeOpacity={0.8}
-            >
-              {isTaking ? (
-                <ActivityIndicator color={theme.primary} />
-              ) : (
-                <View style={[s.shutterInner, { backgroundColor: theme.primary }]} />
-              )}
-            </TouchableOpacity>
-          </View>
+          <FaceGuideOverlay primaryColor={theme.primary} isPositioning={isPositioning} />
+          <ShutterButton
+            primaryColor={theme.primary}
+            disabled={isTaking || isPositioning}
+            loading={isTaking}
+            onPress={handleTakePhotoNative}
+          />
         </View>
       );
     }
 
     if (screenState === 'captured' && photoUri) {
+      const isGood = quality === 'good';
       return (
         <View style={StyleSheet.absoluteFill}>
-          <Image
-            source={{ uri: photoUri }}
-            style={StyleSheet.absoluteFill}
-            resizeMode="cover"
-          />
+          <Image source={{ uri: photoUri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
           <View style={s.capturedOverlay} pointerEvents="none">
             <View style={[s.capturedBadge, {
-              backgroundColor: isDark
-                ? 'rgba(7,18,13,0.75)'
-                : 'rgba(255,255,255,0.80)',
+              backgroundColor: isDark ? 'rgba(7,18,13,0.80)' : 'rgba(255,255,255,0.85)',
             }]}>
-              <Ionicons name="checkmark-circle" size={28} color={theme.primary} />
-              <Text style={[s.capturedLabel, { color: theme.primary }]}>
-                {t('facialReg.captured')}
+              <Ionicons
+                name={isGood ? 'checkmark-circle' : 'alert-circle'}
+                size={22}
+                color={isGood ? theme.primary : Colors.error}
+              />
+              <Text style={[s.capturedLabel, { color: isGood ? theme.primary : Colors.error }]}>
+                {isGood ? t('facialReg.captureSuccess') : t('facialReg.lowLight')}
               </Text>
             </View>
           </View>
@@ -401,299 +418,166 @@ export default function TeenagerRegistrationScreen() {
     // idle
     return (
       <View style={s.centerState}>
-        <View style={[s.faceFrame, {
-          borderColor: isDark
-            ? 'rgba(101,179,97,0.40)'
-            : 'rgba(101,179,97,0.50)',
-        }]}>
-          <Ionicons
-            name="person-outline"
-            size={64}
-            color={isDark
-              ? 'rgba(101,179,97,0.35)'
-              : 'rgba(101,179,97,0.45)'}
-          />
+        <View style={[s.faceFrame, { borderColor: theme.primaryFaint }]}>
+          <Ionicons name="person-outline" size={64} color={theme.primaryFaint} />
         </View>
-        <Text style={[s.hintText, { color: muted }]}>
-          {t('facialReg.tapToCapture')}
-        </Text>
+        <Text style={[s.hintText, { color: muted }]}>{t('facialReg.tapToCapture')}</Text>
       </View>
     );
   };
 
-  // ────────────────────────────────────────────
+  // ── Render principal ────────────────────────────
   return (
-    <LinearGradient
-      colors={
-        isDark
-          ? ['#000000', '#06170F', '#0B2D17']
-          : ['#F7FFF4', '#E5F7DF', '#1E4C28']
-      }
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={s.gradient}
-    >
-      <View style={[s.arcTop,    { backgroundColor: isDark ? 'rgba(101,179,97,0.08)' : 'rgba(20,70,28,0.18)' }]} />
-      <View style={[s.arcBottom, { backgroundColor: isDark ? 'rgba(101,179,97,0.22)' : 'rgba(101,179,97,0.28)' }]} />
+    <GradientBackground>
+      <ScrollView
+        contentContainerStyle={s.scroll}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={[s.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
 
-      <SafeAreaView style={s.safe}>
-        <ScrollView
-          contentContainerStyle={s.scroll}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          <View style={[s.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
-
-            {/* ── Encabezado ── */}
-            <View style={s.header}>
-              <View style={[s.iconCircle, {
-                backgroundColor: isDark
-                  ? 'rgba(101,179,97,0.12)'
-                  : 'rgba(101,179,97,0.10)',
-                borderColor: theme.primary,
-              }]}>
-                <Ionicons name="camera-outline" size={38} color={theme.primary} />
-              </View>
-              <Text style={[s.title, { color: text }]}>{t('facialReg.title')}</Text>
-              <Text style={[s.subtitle, { color: muted }]}>{t('facialReg.subtitle')}</Text>
-            </View>
-
-            {/* ── Área de cámara ── */}
-            <TouchableOpacity
-              activeOpacity={screenState === 'idle' ? 0.8 : 1}
-              onPress={screenState === 'idle' ? handleOpenCamera : undefined}
-              style={[s.cameraBox, {
-                backgroundColor: screenState === 'camera'
-                  ? '#000000'
-                  : isDark
-                    ? 'rgba(255,255,255,0.04)'
-                    : 'rgba(101,179,97,0.05)',
-                borderColor: screenState === 'captured'
-                  ? theme.primary
-                  : isDark
-                    ? 'rgba(101,179,97,0.40)'
-                    : 'rgba(101,179,97,0.50)',
-                borderStyle: screenState === 'camera' ? 'solid' : 'dashed',
-              }]}
-            >
-              {renderCameraArea()}
-            </TouchableOpacity>
-
-            {/* ── Instrucciones ── */}
-            <View style={[s.instrBox, {
-              backgroundColor: instrBg,
-              borderColor: isDark
-                ? 'rgba(101,179,97,0.15)'
-                : 'rgba(101,179,97,0.20)',
+          {/* Encabezado */}
+          <View style={s.header}>
+            <View style={[s.iconCircle, {
+              backgroundColor: isDark ? 'rgba(101,179,97,0.12)' : 'rgba(101,179,97,0.10)',
+              borderColor: theme.primary,
             }]}>
-              <View style={s.instrHeader}>
-                <Ionicons name="list-outline" size={15} color={theme.primary} />
-                <Text style={[s.instrTitle, { color: theme.primary }]}>
-                  {t('facialReg.instructions')}
-                </Text>
-              </View>
-              {INSTRUCTIONS.map((key, i) => (
-                <View key={key} style={s.instrRow}>
-                  <View style={[s.instrNum, { backgroundColor: theme.primary }]}>
-                    <Text style={s.instrNumText}>{i + 1}</Text>
-                  </View>
-                  <Text style={[s.instrItem, { color: muted }]}>{t(key)}</Text>
-                </View>
-              ))}
+              <Ionicons name="camera-outline" size={38} color={theme.primary} />
             </View>
-
-            {/* ── Botones de acción ── */}
-            <View style={s.actions}>
-              {screenState === 'idle' && (
-                <TouchableOpacity
-                  onPress={handleOpenCamera}
-                  style={[s.captureBtn, { backgroundColor: theme.primary }]}
-                  activeOpacity={0.85}
-                >
-                  <Ionicons name="camera" size={20} color="#FFFFFF" />
-                  <Text style={s.captureBtnText}>{t('facialReg.captureBtn')}</Text>
-                </TouchableOpacity>
-              )}
-
-              {screenState === 'captured' && (
-                <TouchableOpacity
-                  onPress={handleRetake}
-                  style={[s.retakeBtn, {
-                    borderColor: isDark
-                      ? 'rgba(255,255,255,0.20)'
-                      : '#CCCCCC',
-                  }]}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="refresh-outline" size={18} color={muted} />
-                  <Text style={[s.retakeBtnText, { color: muted }]}>
-                    {t('facialReg.retake')}
-                  </Text>
-                </TouchableOpacity>
-              )}
-
-              <TouchableOpacity
-                onPress={handleFinish}
-                disabled={screenState !== 'captured'}
-                activeOpacity={0.85}
-                style={[s.finishBtn, screenState !== 'captured' && s.finishBtnDisabled]}
-              >
-                <LinearGradient
-                  colors={
-                    screenState === 'captured'
-                      ? ['#72C96D', '#65B361', '#4FA14B']
-                      : ['#888888', '#666666']
-                  }
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={s.finishBtnGradient}
-                >
-                  <Ionicons name="checkmark-done-outline" size={20} color="#FFFFFF" />
-                  <Text style={s.finishBtnText}>{t('facialReg.finish')}</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            </View>
-
+            <Text style={[s.title, { color: text }]}>{t('facialReg.title')}</Text>
+            <Text style={[s.subtitle, { color: muted }]}>{t('facialReg.subtitle')}</Text>
           </View>
-        </ScrollView>
-      </SafeAreaView>
-    </LinearGradient>
+
+          {/* Área de cámara */}
+          <TouchableOpacity
+            activeOpacity={screenState === 'idle' ? 0.8 : 1}
+            onPress={screenState === 'idle' ? handleOpenCamera : undefined}
+            style={[s.cameraBox, {
+              backgroundColor: screenState === 'positioning' || screenState === 'ready'
+                ? Colors.black
+                : (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(101,179,97,0.05)'),
+              borderColor: screenState === 'captured' ? theme.primary : theme.primaryFaint,
+              borderStyle: screenState === 'idle' || screenState === 'requesting' ? 'dashed' : 'solid',
+            }]}
+          >
+            {renderCameraArea()}
+          </TouchableOpacity>
+
+          {/* Instrucciones */}
+          <View style={[s.instrBox, { backgroundColor: instrBg, borderColor: theme.primaryFaint }]}>
+            <View style={s.instrHeader}>
+              <Ionicons name="list-outline" size={15} color={theme.primary} />
+              <Text style={[s.instrTitle, { color: theme.primary }]}>
+                {t('facialReg.instructions')}
+              </Text>
+            </View>
+            {INSTRUCTION_KEYS.map((key, index) => (
+              <View key={key} style={s.instrRow}>
+                <View style={[s.instrNum, { backgroundColor: theme.primary }]}>
+                  <Text style={s.instrNumText}>{index + 1}</Text>
+                </View>
+                <Text style={[s.instrItem, { color: muted }]}>{t(key)}</Text>
+              </View>
+            ))}
+          </View>
+
+          {/* Botones de acción */}
+          <View style={s.actions}>
+            {screenState === 'idle' && (
+              <TouchableOpacity
+                onPress={handleOpenCamera}
+                style={[s.captureBtn, { backgroundColor: theme.primary }]}
+                activeOpacity={0.85}
+              >
+                <Ionicons name="camera" size={20} color={Colors.white} />
+                <Text style={s.captureBtnText}>{t('facialReg.captureBtn')}</Text>
+              </TouchableOpacity>
+            )}
+
+            {screenState === 'captured' && (
+              <TouchableOpacity
+                onPress={handleRetake}
+                style={[s.retakeBtn, { borderColor: isDark ? 'rgba(255,255,255,0.20)' : '#CCCCCC' }]}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="refresh-outline" size={18} color={muted} />
+                <Text style={[s.retakeBtnText, { color: muted }]}>{t('facialReg.retake')}</Text>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+              onPress={handleFinish}
+              disabled={!canFinish}
+              activeOpacity={0.85}
+              style={[s.finishBtn, !canFinish && s.finishBtnDisabled]}
+            >
+              <View style={[
+                s.finishBtnInner,
+                { backgroundColor: canFinish ? theme.primary : '#888888' },
+              ]}>
+                <Ionicons name="checkmark-done-outline" size={20} color={Colors.white} />
+                <Text style={s.finishBtnText}>{t('facialReg.finish')}</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+
+        </View>
+      </ScrollView>
+    </GradientBackground>
   );
 }
 
-// ── Estilos ──────────────────────────────────
+// ── Estilos ───────────────────────────────────
 const s = StyleSheet.create({
-  gradient:  { flex: 1 },
-  safe:      { flex: 1 },
-  scroll: {
-    flexGrow: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 32,
-    paddingHorizontal: 20,
-  },
-  arcTop: {
-    position: 'absolute',
-    width: 300, height: 420,
-    right: -120, top: -90,
-    borderRadius: 200,
-  },
-  arcBottom: {
-    position: 'absolute',
-    width: 420, height: 220,
-    left: -120, bottom: -30,
-    borderRadius: 180,
-  },
+  scroll: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 32, paddingHorizontal: 20 },
+
   card: {
-    width: '100%', maxWidth: 480,
-    borderRadius: 26, borderWidth: 1,
+    width: '100%', maxWidth: 480, borderRadius: 26, borderWidth: 1,
     paddingHorizontal: 24, paddingVertical: 30,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.18, shadowRadius: 18,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.18, shadowRadius: 18, elevation: 8,
   },
+
   header:     { alignItems: 'center', marginBottom: 24 },
-  iconCircle: {
-    width: 80, height: 80, borderRadius: 40,
-    borderWidth: 2,
-    alignItems: 'center', justifyContent: 'center',
-    marginBottom: 16,
-  },
-  title:    { fontSize: 26, fontWeight: '900', textAlign: 'center', marginBottom: 8 },
-  subtitle: { fontSize: 13, textAlign: 'center', lineHeight: 20 },
-  cameraBox: {
-    height: 280,
-    borderRadius: 20,
-    borderWidth: 2,
-    overflow: 'hidden',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 24,
-  },
+  iconCircle: { width: 80, height: 80, borderRadius: 40, borderWidth: 2, alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
+  title:      { fontSize: FontSize['3xl'], fontWeight: FontWeight.black, textAlign: 'center', marginBottom: 8 },
+  subtitle:   { fontSize: FontSize.md, textAlign: 'center', lineHeight: 20 },
+
+  cameraBox: { height: 280, borderRadius: 20, borderWidth: 2, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
   centerState: { alignItems: 'center', gap: 14, padding: 20 },
-  faceFrame: {
-    width: 110, height: 110,
-    borderRadius: 55, borderWidth: 2,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  hintText: { fontSize: 13, fontWeight: '600', textAlign: 'center' },
-  faceGuideContainer: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  faceGuide: {
-    width: 170, height: 210,
-    borderRadius: 90,
-    borderWidth: 2,
-    borderStyle: 'dashed',
-  },
-  shutterContainer: {
-    position: 'absolute',
-    bottom: 20,
-    left: 0, right: 0,
-    alignItems: 'center',
-  },
-  shutterOuter: {
-    width: 64, height: 64, borderRadius: 32,
-    borderWidth: 3,
-    alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.18)',
-  },
-  shutterInner: { width: 46, height: 46, borderRadius: 23 },
-  capturedOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    paddingBottom: 16,
-  },
-  capturedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 18, paddingVertical: 10,
-    borderRadius: 30,
-  },
-  capturedLabel: { fontSize: 15, fontWeight: '800' },
-  instrBox: {
-    borderRadius: 14, borderWidth: 1,
-    padding: 16, marginBottom: 24,
-  },
-  instrHeader: {
-    flexDirection: 'row', alignItems: 'center',
-    gap: 6, marginBottom: 14,
-  },
-  instrTitle: {
-    fontSize: 12, fontWeight: '800',
-    textTransform: 'uppercase', letterSpacing: 0.6,
-  },
-  instrRow:   { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 10 },
-  instrNum: {
-    width: 20, height: 20, borderRadius: 10,
-    alignItems: 'center', justifyContent: 'center',
-    flexShrink: 0, marginTop: 1,
-  },
-  instrNumText: { color: '#FFFFFF', fontSize: 11, fontWeight: '800' },
-  instrItem:    { flex: 1, fontSize: 13, lineHeight: 19 },
+  faceFrame:   { width: 110, height: 110, borderRadius: 55, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  hintText:    { fontSize: FontSize.md, fontWeight: FontWeight.semibold, textAlign: 'center' },
+
+  faceGuideContainer: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
+  faceGuide:          { width: 170, height: 210, borderRadius: 90, borderWidth: 2, borderStyle: 'dashed' },
+
+  positionBadge:     { position: 'absolute', bottom: 90, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 },
+  positionBadgeText: { color: Colors.white, fontSize: FontSize.sm, fontWeight: FontWeight.bold },
+
+  shutterContainer: { position: 'absolute', bottom: 20, left: 0, right: 0, alignItems: 'center' },
+  shutterOuter:      { width: 64, height: 64, borderRadius: 32, borderWidth: 3, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.18)' },
+  shutterInner:       { width: 46, height: 46, borderRadius: 23 },
+
+  capturedOverlay: { ...StyleSheet.absoluteFillObject, justifyContent: 'flex-end', alignItems: 'center', paddingBottom: 16 },
+  capturedBadge:   { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 18, paddingVertical: 10, borderRadius: 30, maxWidth: '90%' },
+  capturedLabel:   { fontSize: FontSize.base, fontWeight: FontWeight.extrabold, flexShrink: 1 },
+
+  instrBox:    { borderRadius: 14, borderWidth: 1, padding: 16, marginBottom: 24 },
+  instrHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 14 },
+  instrTitle:  { fontSize: FontSize.sm, fontWeight: FontWeight.extrabold, textTransform: 'uppercase', letterSpacing: 0.6 },
+  instrRow:    { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 10 },
+  instrNum:    { width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 },
+  instrNumText:{ color: Colors.white, fontSize: FontSize.xs, fontWeight: FontWeight.extrabold },
+  instrItem:   { flex: 1, fontSize: FontSize.md, lineHeight: 19 },
+
   actions:    { gap: 12 },
-  captureBtn: {
-    flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'center', gap: 10,
-    paddingVertical: 14, borderRadius: 16,
-  },
-  captureBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
-  retakeBtn: {
-    flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'center', gap: 8,
-    paddingVertical: 12, borderRadius: 14, borderWidth: 1.2,
-  },
-  retakeBtnText: { fontSize: 14, fontWeight: '600' },
+  captureBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 14, borderRadius: 16 },
+  captureBtnText: { color: Colors.white, fontSize: FontSize.lg, fontWeight: FontWeight.bold },
+
+  retakeBtn:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 12, borderRadius: 14, borderWidth: 1.2 },
+  retakeBtnText: { fontSize: FontSize.base, fontWeight: FontWeight.semibold },
+
   finishBtn:         { borderRadius: 16, overflow: 'hidden' },
   finishBtnDisabled: { opacity: 0.55 },
-  finishBtnGradient: {
-    flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'center', gap: 10,
-    paddingVertical: 14,
-  },
-  finishBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
+  finishBtnInner:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 14 },
+  finishBtnText:     { color: Colors.white, fontSize: FontSize.lg, fontWeight: FontWeight.bold },
 });

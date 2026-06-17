@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────
 //  app/auth/register.tsx
-//  Registro de usuario — código limpio
+//  Registro de usuario — código limpio + i18n
 //  Lógica de validación separada, componentes
 //  reutilizables desde shared/ y features/
 // ─────────────────────────────────────────────
@@ -8,13 +8,12 @@ import { useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
   Platform, ScrollView, KeyboardAvoidingView,
-  TextInput, Dimensions,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { router, Link, useLocalSearchParams } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/shared/contexts/ThemeContext';
 import { Colors } from '@/shared/constants/colors';
 import { FontSize, FontWeight } from '@/shared/constants/typography';
@@ -32,12 +31,7 @@ const ONLY_LETTERS   = /^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+$/;
 const EMAIL_REGEX    = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()\-_=+[\]{};:'",.<>?/\\|`~]).{8,15}$/;
 
-const IDENTITY_OPTIONS = [
-  { value: 'TI', label: 'TI — Tarjeta de Identidad (menor)' },
-  { value: 'CC', label: 'CC — Cédula de Ciudadanía (mayor)' },
-  { value: 'CE', label: 'CE — Cédula de Extranjería' },
-  { value: 'PA', label: 'PA — Pasaporte' },
-];
+const IDENTITY_VALUES = ['TI', 'CC', 'CE', 'PA'] as const;
 
 const initialForm = {
   name: '', lastname: '', identityType: '',
@@ -69,6 +63,7 @@ function formatDate(date: Date): string {
 // ── Componente ────────────────────────────────
 export default function RegisterScreen() {
   const { theme, isDark } = useTheme();
+  const { t } = useTranslation();
   const { validatedEmail } = useLocalSearchParams<{ validatedEmail: string }>();
 
   // ── Colores locales ──────────────────────────
@@ -80,9 +75,14 @@ export default function RegisterScreen() {
   const inputBorder = isDark ? Colors.dark.inputBorder : Colors.light.inputBorder;
   const linkColor   = isDark ? Colors.dark.link     : Colors.light.link;
   const dropBg      = isDark ? Colors.dark.card     : Colors.white;
-  const sectionLine = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)';
   const rightsBg    = isDark ? 'rgba(255,255,255,0.04)' : '#F3F8F3';
   const isWide      = width >= 900;
+
+  // Opciones de identidad — usa t() para las etiquetas
+  const identityOptions = IDENTITY_VALUES.map(value => ({
+    value,
+    label: t(`register.identity${value}`),
+  }));
 
   // ── Estado ────────────────────────────────────
   const [form, setForm] = useState({
@@ -96,8 +96,6 @@ export default function RegisterScreen() {
   const [emailValidated, setEmailValidated] = useState(!!validatedEmail);
   const [showIdentity, setShowIdentity]     = useState(false);
   const [errors, setErrors]                 = useState(initialErrors);
-  const [showPass, setShowPass]             = useState(false);
-  const [showConfirm, setShowConfirm]       = useState(false);
 
   // ── Handlers ──────────────────────────────────
   const clearError = (key: string) =>
@@ -124,11 +122,11 @@ export default function RegisterScreen() {
   const handleEmailValidate = () => {
     const e = form.email.trim();
     if (!e) {
-      setErrors(p => ({ ...p, emailAction: 'Ingresa el correo primero' }));
+      setErrors(p => ({ ...p, emailAction: t('register.errors.emailEmpty') }));
       return;
     }
     if (!EMAIL_REGEX.test(e)) {
-      setErrors(p => ({ ...p, emailAction: 'Correo inválido' }));
+      setErrors(p => ({ ...p, emailAction: t('register.errors.emailInvalidShort') }));
       return;
     }
     router.push({
@@ -147,42 +145,42 @@ export default function RegisterScreen() {
     };
 
     // Validaciones
-    if (!d.name)                          e.name = 'El nombre es obligatorio';
-    else if (!ONLY_LETTERS.test(d.name))  e.name = 'Solo se permiten letras';
+    if (!d.name)                          e.name = t('register.errors.nameRequired');
+    else if (!ONLY_LETTERS.test(d.name))  e.name = t('register.errors.onlyLetters');
 
-    if (!d.lastname)                            e.lastname = 'El apellido es obligatorio';
-    else if (!ONLY_LETTERS.test(d.lastname))    e.lastname = 'Solo se permiten letras';
+    if (!d.lastname)                            e.lastname = t('register.errors.lastnameRequired');
+    else if (!ONLY_LETTERS.test(d.lastname))    e.lastname = t('register.errors.onlyLetters');
 
-    if (!d.identityType) e.identityType = 'Selecciona un tipo de identidad';
+    if (!d.identityType) e.identityType = t('register.errors.identityRequired');
 
-    if (!d.document)                    e.document = 'Documento obligatorio';
-    else if (d.document.length !== 10)  e.document = 'Debe tener exactamente 10 dígitos';
+    if (!d.document)                    e.document = t('register.errors.documentRequired');
+    else if (d.document.length !== 10)  e.document = t('register.errors.documentLength');
 
-    if (!d.email)                         e.email = 'Correo obligatorio';
-    else if (!EMAIL_REGEX.test(d.email))  e.email = 'Formato de correo inválido';
+    if (!d.email)                         e.email = t('register.errors.emailRequired');
+    else if (!EMAIL_REGEX.test(d.email))  e.email = t('register.errors.emailInvalid');
 
-    if (!emailValidated) e.emailAction = 'Debes validar el correo antes de continuar';
+    if (!emailValidated) e.emailAction = t('register.errors.emailNotValidated');
 
-    if (!d.password)                            e.password = 'Contraseña obligatoria';
-    else if (!PASSWORD_REGEX.test(d.password))  e.password = 'Mínimo 8 y máximo 15 caracteres, una mayúscula, un número y un símbolo';
+    if (!d.password)                            e.password = t('register.errors.passwordRequired');
+    else if (!PASSWORD_REGEX.test(d.password))  e.password = t('register.errors.passwordWeak');
 
-    if (!d.confirmPassword)                    e.confirmPassword = 'Confirma tu contraseña';
-    else if (d.password !== d.confirmPassword) e.confirmPassword = 'Las contraseñas no coinciden';
+    if (!d.confirmPassword)                    e.confirmPassword = t('register.errors.confirmRequired');
+    else if (d.password !== d.confirmPassword) e.confirmPassword = t('register.errors.passwordMismatch');
 
     if (!birthdate) {
-      e.birthdate = 'Selecciona fecha de nacimiento';
+      e.birthdate = t('register.errors.birthdateRequired');
     } else {
       const age = getAge(birthdate);
-      if (age < 8)       e.birthdate = 'La edad mínima es 8 años';
-      else if (age > 100) e.birthdate = 'La edad máxima es 100 años';
+      if (age < 8)        e.birthdate = t('register.errors.ageMin');
+      else if (age > 100) e.birthdate = t('register.errors.ageMax');
       else if (d.identityType === 'TI' && age >= 18)
-        e.identityType = 'TI es solo para menores de 18 años';
+        e.identityType = t('register.errors.tiAdult');
       else if (d.identityType === 'CC' && age < 18)
-        e.identityType = 'CC es solo para mayores de 18 años';
+        e.identityType = t('register.errors.ccMinor');
     }
 
-    if (!accepted)          e.policy = 'Debes declarar y aceptar las políticas';
-    if (hasRights === null) e.rights = 'Debes responder esta pregunta';
+    if (!accepted)          e.policy = t('register.errors.policyRequired');
+    if (hasRights === null) e.rights = t('register.errors.rightsRequired');
 
     setErrors(e);
     const hasErrors = Object.values(e).some(v => v !== '');
@@ -197,6 +195,12 @@ export default function RegisterScreen() {
         params: { minorEmail: d.email },
       });
     }
+  };
+
+  const handleCancel = () => {
+    setForm(initialForm);
+    setBirthdate(null);
+    router.replace(Routes.AUTH.LOGIN as any);
   };
 
   // ── Render ────────────────────────────────────
@@ -218,27 +222,25 @@ export default function RegisterScreen() {
           ]}>
 
             {/* Título */}
-            <Text style={[s.title, { color: text }]}>Registro de usuario</Text>
-            <Text style={[s.subtitle, { color: muted }]}>
-              Completa tu información para crear tu cuenta en FaceLit
-            </Text>
+            <Text style={[s.title, { color: text }]}>{t('register.title')}</Text>
+            <Text style={[s.subtitle, { color: muted }]}>{t('register.subtitle')}</Text>
 
             {/* ── Datos personales ── */}
-            <SectionHeader icon="person-outline" label="Datos personales" />
+            <SectionHeader icon="person-outline" label={t('register.sections.personal')} />
 
             <InputField
-              label="Nombre"
+              label={t('register.name')}
               icon="person-outline"
-              placeholder="Nombre completo"
+              placeholder={t('register.namePlaceholder')}
               value={form.name}
               onChangeText={v => setField('name', v.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g, ''))}
               error={errors.name}
             />
 
             <InputField
-              label="Apellido"
+              label={t('register.lastname')}
               icon="people-outline"
-              placeholder="Apellido completo"
+              placeholder={t('register.lastnamePlaceholder')}
               value={form.lastname}
               onChangeText={v => setField('lastname', v.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g, ''))}
               error={errors.lastname}
@@ -246,7 +248,7 @@ export default function RegisterScreen() {
 
             {/* Tipo de identidad */}
             <View style={s.fieldGroup}>
-              <Text style={[s.label, { color: text }]}>Tipo de identidad</Text>
+              <Text style={[s.label, { color: text }]}>{t('register.identityType')}</Text>
               <TouchableOpacity
                 onPress={() => setShowIdentity(!showIdentity)}
                 style={[s.inputWrap, {
@@ -263,8 +265,8 @@ export default function RegisterScreen() {
                   color: form.identityType ? text : (isDark ? '#5A7258' : '#AAAAAA'),
                 }]}>
                   {form.identityType
-                    ? IDENTITY_OPTIONS.find(o => o.value === form.identityType)?.label
-                    : 'Selecciona una opción'}
+                    ? identityOptions.find(o => o.value === form.identityType)?.label
+                    : t('register.identitySelect')}
                 </Text>
                 <Ionicons
                   name={showIdentity ? 'chevron-up' : 'chevron-down'}
@@ -276,7 +278,7 @@ export default function RegisterScreen() {
                   backgroundColor: dropBg,
                   borderColor: inputBorder,
                 }]}>
-                  {IDENTITY_OPTIONS.map(opt => (
+                  {identityOptions.map(opt => (
                     <TouchableOpacity
                       key={opt.value}
                       style={[
@@ -315,7 +317,7 @@ export default function RegisterScreen() {
               }]}>
                 <Ionicons name="information-circle-outline" size={14} color={Colors.warning} />
                 <Text style={[s.infoText, { color: isDark ? Colors.warning : '#8B6000' }]}>
-                  TI es para menores de edad (menos de 18 años)
+                  {t('register.infoTI')}
                 </Text>
               </View>
             )}
@@ -326,15 +328,15 @@ export default function RegisterScreen() {
               }]}>
                 <Ionicons name="information-circle-outline" size={14} color={theme.primary} />
                 <Text style={[s.infoText, { color: isDark ? theme.primary : '#2E6E2A' }]}>
-                  CC es para mayores de edad (18 años o más)
+                  {t('register.infoCC')}
                 </Text>
               </View>
             )}
 
             <InputField
-              label="Número de documento (10 dígitos)"
+              label={t('register.document')}
               icon="document-text-outline"
-              placeholder="0000000000"
+              placeholder={t('register.documentPlaceholder')}
               keyboardType="numeric"
               value={form.document}
               onChangeText={v => setField('document', v.replace(/\D/g, '').slice(0, 10))}
@@ -342,19 +344,17 @@ export default function RegisterScreen() {
             />
 
             {/* ── Contacto ── */}
-            <SectionHeader icon="mail-outline" label="Contacto" />
+            <SectionHeader icon="mail-outline" label={t('register.sections.contact')} />
 
             <InputField
-              label="Correo electrónico"
+              label={t('register.email')}
               icon="mail-outline"
-              placeholder="correo@ejemplo.com"
+              placeholder={t('register.emailPlaceholder')}
               keyboardType="email-address"
               value={form.email}
               onChangeText={handleEmail}
               error={errors.email}
-              containerStyle={emailValidated ? {
-                borderColor: theme.primary,
-              } : undefined}
+              containerStyle={emailValidated ? { borderColor: theme.primary } : undefined}
             />
 
             <TouchableOpacity
@@ -383,9 +383,7 @@ export default function RegisterScreen() {
                   ? Colors.error
                   : muted,
               }]}>
-                {emailValidated
-                  ? '✓ Correo verificado'
-                  : 'Validar correo — obligatorio para continuar'}
+                {emailValidated ? t('register.emailValidated') : t('register.validateEmail')}
               </Text>
             </TouchableOpacity>
             {errors.emailAction
@@ -393,11 +391,11 @@ export default function RegisterScreen() {
               : null}
 
             {/* ── Seguridad ── */}
-            <SectionHeader icon="lock-closed-outline" label="Seguridad" />
+            <SectionHeader icon="lock-closed-outline" label={t('register.sections.security')} />
 
             <PasswordField
-              label="Contraseña"
-              placeholder="Contraseña"
+              label={t('register.password')}
+              placeholder={t('register.password')}
               value={form.password}
               onChangeText={v => setField('password', v)}
               error={errors.password}
@@ -405,26 +403,22 @@ export default function RegisterScreen() {
             <View style={[s.hintBox, {
               backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#F5F5F5',
             }]}>
-              <Text style={[s.hintText, { color: muted }]}>
-                8–15 caracteres · 1 mayúscula · 1 número · 1 símbolo
-              </Text>
+              <Text style={[s.hintText, { color: muted }]}>{t('register.passwordHint')}</Text>
             </View>
 
             <PasswordField
-              label="Confirmar contraseña"
-              placeholder="Confirmar contraseña"
+              label={t('register.confirmPassword')}
+              placeholder={t('register.confirmPassword')}
               value={form.confirmPassword}
               onChangeText={v => setField('confirmPassword', v)}
               error={errors.confirmPassword}
             />
 
             {/* ── Otros datos ── */}
-            <SectionHeader icon="calendar-outline" label="Otros datos" />
+            <SectionHeader icon="calendar-outline" label={t('register.sections.other')} />
 
             <View style={s.fieldGroup}>
-              <Text style={[s.label, { color: text }]}>
-                Fecha de nacimiento (8–100 años)
-              </Text>
+              <Text style={[s.label, { color: text }]}>{t('register.birthdate')}</Text>
               {Platform.OS === 'web' ? (
                 <View style={[s.inputWrap, {
                   backgroundColor: inputBg,
@@ -458,7 +452,7 @@ export default function RegisterScreen() {
                   <Text style={[s.inputText, {
                     color: birthdate ? text : (isDark ? '#5A7258' : '#AAAAAA'),
                   }]}>
-                    {birthdate ? formatDate(birthdate) : 'Seleccionar fecha'}
+                    {birthdate ? formatDate(birthdate) : t('register.birthdateSelect')}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -480,7 +474,7 @@ export default function RegisterScreen() {
             )}
 
             {/* ── Aceptaciones ── */}
-            <SectionHeader icon="checkmark-done-outline" label="Aceptaciones" />
+            <SectionHeader icon="checkmark-done-outline" label={t('register.sections.acceptances')} />
 
             <TouchableOpacity
               onPress={() => setAccepted(!accepted)}
@@ -500,9 +494,9 @@ export default function RegisterScreen() {
                 )}
               </View>
               <Text style={[s.checkLabel, { color: text }]}>
-                Declaro que la información es verídica conforme a la{' '}
+                {t('register.policyText')}{' '}
                 <Text style={{ color: theme.primary, fontWeight: FontWeight.bold }}>
-                  Ley 1581 de 2012
+                  {t('register.policyLaw')}
                 </Text>.
               </Text>
             </TouchableOpacity>
@@ -516,14 +510,9 @@ export default function RegisterScreen() {
               borderColor: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.07)',
             }]}>
               <View style={s.rightsHeader}>
-                <Ionicons
-                  name="information-circle-outline"
-                  size={16}
-                  color={theme.primary}
-                />
+                <Ionicons name="information-circle-outline" size={16} color={theme.primary} />
                 <Text style={[s.rightsQ, { color: text }]}>
-                  ¿Ha leído y acepta sus derechos de acceso,
-                  actualización y rectificación de datos?
+                  {t('register.rightsQuestion')}
                 </Text>
               </View>
               <View style={s.rightsButtons}>
@@ -533,9 +522,7 @@ export default function RegisterScreen() {
                     borderColor: hasRights === true
                       ? theme.primary
                       : (isDark ? 'rgba(255,255,255,0.20)' : '#CCCCCC'),
-                    backgroundColor: hasRights === true
-                      ? theme.primary
-                      : Colors.transparent,
+                    backgroundColor: hasRights === true ? theme.primary : Colors.transparent,
                   }]}
                 >
                   <Ionicons
@@ -544,7 +531,7 @@ export default function RegisterScreen() {
                   />
                   <Text style={[s.rightsBtnText, {
                     color: hasRights === true ? Colors.white : muted,
-                  }]}>Sí</Text>
+                  }]}>{t('register.rightsYes')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -553,9 +540,7 @@ export default function RegisterScreen() {
                     borderColor: hasRights === false
                       ? Colors.error
                       : (isDark ? 'rgba(255,255,255,0.20)' : '#CCCCCC'),
-                    backgroundColor: hasRights === false
-                      ? Colors.error
-                      : Colors.transparent,
+                    backgroundColor: hasRights === false ? Colors.error : Colors.transparent,
                   }]}
                 >
                   <Ionicons
@@ -564,7 +549,7 @@ export default function RegisterScreen() {
                   />
                   <Text style={[s.rightsBtnText, {
                     color: hasRights === false ? Colors.white : muted,
-                  }]}>No</Text>
+                  }]}>{t('register.rightsNo')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -572,7 +557,7 @@ export default function RegisterScreen() {
                   style={s.rightsReadLink}
                 >
                   <Text style={[s.rightsReadText, { color: linkColor }]}>
-                    Leer mis derechos
+                    {t('register.rightsRead')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -583,27 +568,23 @@ export default function RegisterScreen() {
 
             {/* ── Botones ── */}
             <AppButton
-              title="Registrarse"
+              title={t('register.registerBtn')}
               onPress={handleRegister}
               style={s.registerBtn}
             />
 
             <AppButton
-              title="Cancelar"
-              onPress={() => {
-                setForm(initialForm);
-                setBirthdate(null);
-                router.replace(Routes.AUTH.LOGIN as any);
-              }}
+              title={t('register.cancelBtn')}
+              onPress={handleCancel}
               variant="outline"
               style={s.cancelBtn}
             />
 
             <View style={s.footer}>
               <Text style={[s.footerText, { color: muted }]}>
-                ¿Ya tienes cuenta?{' '}
+                {t('register.hasAccount')}{' '}
               </Text>
-              <NavLink href={Routes.AUTH.LOGIN} label="Inicia sesión" />
+              <NavLink href={Routes.AUTH.LOGIN} label={t('register.loginLink')} />
             </View>
 
           </View>

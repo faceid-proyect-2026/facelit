@@ -1,4 +1,8 @@
 const es = {
+// ─────────────────────────────────────────────
+//  Modulo 1- auth
+// ─────────────────────────────────────────────
+
   //Login Page
   common: {
     cancel:  'Cancelar',
@@ -101,6 +105,7 @@ innovation: {
 
 //Login
 login: {
+    backBtn: '← Volver al inicio',
     title:          'Inicio de sesión',
     subtitle:       'Ingrese sus credenciales',
     email:          'Correo electrónico',
@@ -368,6 +373,57 @@ register: {
       rightsRequired:     'Debes responder esta pregunta',
     },
   },
+
+//Teenager Registration
+facialReg: {
+    title:    'Registrar rostro',
+    subtitle: 'Posiciona tu rostro frente a la cámara',
+    captureBtn: 'Iniciar Captura',
+    instructions: 'Instrucciones para el registro:',
+    instr1: 'Ubíquese frente a la cámara',
+    instr2: 'Mantenga una iluminación adecuada',
+    instr3: 'Mire directamente a la cámara',
+    instr4: 'Evite usar gafas oscuras o sombreros',
+    instr5: 'El sistema capturará una imagen frontal del rostro',
+    tapToCapture:    'Toca el botón para activar la cámara',
+    requestingPermission: 'Solicitando permiso de cámara…',
+    permissionDenied:     'Debes permitir el acceso a la cámara para continuar.',
+    moveCloser:   'Acércate un poco más a la cámara',
+    goodPosition: 'Posición correcta, puedes capturar',
+    captured:     'Rostro capturado',
+    captureError: 'Ocurrió un error al tomar la foto. Intenta de nuevo.',
+    lowLight:        'La imagen está muy oscura. Mejora la iluminación e intenta de nuevo.',
+    captureSuccess:  '¡Buena captura! El rostro se ve claro.',
+    retake: 'Volver a tomar',
+    finish: 'Finalizar registro',
+  },
+
+//Email Validation
+emailValidation: {
+  backBtn:      'Volver al registro',
+  title:        'Verifica tu correo',
+  subtitle:     'Se ha enviado un código de 6 dígitos a',
+  timerLabel:   'Tiempo restante ',
+  resendBtn:    'Reenviar código',
+  inputLabel:   'Código de verificación',
+  placeholder:  'X X X X X X',
+  hint:         'Ingresa el código de 6 dígitos enviado a tu correo',
+  verifyBtn:    'Verificar código',
+  demoText:     'Demo: el código es',
+  errors: {
+    expired:    'El código ha expirado. Solicita uno nuevo.',
+    length:     'Debes ingresar los 6 dígitos del código.',
+    invalid:    'Código incorrecto. Intenta de nuevo.',
+  },
+},  
+
+//Email Validated Success
+emailValidatedSuccess: {
+  title:    '¡Correo verificado!',
+  subtitle: 'Tu correo ha sido verificado correctamente.\nPuedes continuar con el registro.',
+  btn:      'Continuar registro',
+},
+
 } as const;
 
 export default es;

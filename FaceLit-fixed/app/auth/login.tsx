@@ -5,6 +5,7 @@
 //  i18n: todos los textos desde t()
 // ─────────────────────────────────────────────
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/shared/contexts/ThemeContext';
@@ -20,11 +21,21 @@ import { AppButton, InputField, PasswordField } from '@/shared/components/ui';
 export default function LoginScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const router = useRouter();
   const { form, errors, setField, handleSubmit } = useLoginForm();
 
   return (
     <GradientBackground>
       <AuthCard>
+
+        {/* Volver */}
+        <TouchableOpacity
+          
+          onPress={() => router.push('/')}
+          accessibilityLabel={t('common.back')}
+        >
+          <Ionicons name="arrow-back" size={18} color={theme.text} />
+        </TouchableOpacity>
 
         {/* Título */}
         <Text style={[s.title, { color: theme.text }]}>
@@ -113,6 +124,16 @@ export default function LoginScreen() {
 }
 
 const s = StyleSheet.create({
+  backBtn: {
+    alignSelf:      'flex-start',
+    marginBottom:   12,
+    width:          34,
+    height:         34,
+    borderRadius:   8,
+    borderWidth:    1,
+    alignItems:     'center',
+    justifyContent: 'center',
+  },
   title: {
     fontSize:     FontSize['3xl'],
     fontWeight:   FontWeight.black,

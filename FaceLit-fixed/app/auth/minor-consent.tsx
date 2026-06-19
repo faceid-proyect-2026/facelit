@@ -11,7 +11,6 @@ import {
   Dimensions,
   KeyboardAvoidingView,
   Linking,
-  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -26,9 +25,6 @@ const CARD_MAX  = 900;
 const EMAIL_REGEX  = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const ONLY_LETTERS = /^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+$/;
 
-// ─── Constants (modal de éxito) ───────────────
-const SUCCESS_BUTTON_GRADIENT = ['#72C96D', '#65B361', '#4FA14B'] as const;
-
 export default function MinorConsentScreen() {
   const { t }             = useTranslation();
   const { theme, isDark } = useTheme();
@@ -37,7 +33,6 @@ export default function MinorConsentScreen() {
   const text            = isDark ? '#FFFFFF'                   : '#111111';
   const muted           = isDark ? '#A8BCA6'                   : '#555555';
   const cardBg          = isDark ? '#07120D'                   : '#FFFFFF';
-  const cardShadow      = isDark ? '#000000'                   : '#1C3A1D';
   const inputBg         = isDark ? 'rgba(255,255,255,0.05)'    : '#FAFAFA';
   const inputBorder     = isDark ? 'rgba(255,255,255,0.30)'    : '#BBBBBB';
   const activeBorder    = theme.primary;
@@ -58,9 +53,6 @@ export default function MinorConsentScreen() {
   const [accepted,       setAccepted]       = useState(false);
   const [errors,         setErrors]         = useState<Record<string, string>>({});
   const [focused,        setFocused]        = useState<string | null>(null);
-
-  // Estado del modal de éxito (reemplaza la navegación a registration-success)
-  const [successModalVisible, setSuccessModalVisible] = useState(false);
 
   const clearError = (k: string) => setErrors((p) => ({ ...p, [k]: '' }));
 
@@ -131,15 +123,9 @@ export default function MinorConsentScreen() {
     setErrors(e);
     if (Object.keys(e).length) return;
 
-    // Antes: router.replace('/auth/registration-success');
-    // Ahora: se abre el modal de éxito sobre esta misma pantalla.
-    setSuccessModalVisible(true);
-  };
-
-  // Al cerrar el modal, recién ahí se navega al login.
-  const handleCloseSuccessModal = () => {
-    setSuccessModalVisible(false);
-    router.replace('/auth/login');
+    // Tras el consentimiento, se continúa con el registro facial.
+    // El modal de éxito se muestra en esa pantalla (teenager-registration), no acá.
+    router.replace('/auth/teenager-registration');
   };
 
   // ── JSX del campo Nombre (inline, sin sub-componente) ──
@@ -394,52 +380,6 @@ export default function MinorConsentScreen() {
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
-
-      {/* ── Modal de éxito de registro (reemplaza la navegación a registration-success) ── */}
-      <Modal
-        visible={successModalVisible}
-        animationType="fade"
-        transparent
-        onRequestClose={() => {}} // bloquea cierre con botón atrás; se cierra solo con el botón
-      >
-        <View style={ms.overlay}>
-          <View style={[ms.card, { backgroundColor: cardBg, shadowColor: cardShadow }]}>
-
-            {/* Círculo con check */}
-            <View style={[ms.iconCircle, { backgroundColor: theme.primary }]}>
-              <Ionicons name="checkmark" size={52} color="#FFFFFF" />
-            </View>
-
-            {/* Título */}
-            <Text style={[ms.title, { color: text }]}>
-              {t('registrationSuccess.title')}
-            </Text>
-
-            {/* Subtítulo */}
-            <Text style={[ms.subtitle, { color: muted }]}>
-              {t('registrationSuccess.subtitle')}
-            </Text>
-
-            {/* Separador */}
-            <View style={[
-              ms.divider,
-              { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' },
-            ]} />
-
-            {/* Botón — mismo patrón que registration-success */}
-            <TouchableOpacity
-              style={ms.button}
-              onPress={handleCloseSuccessModal}
-              activeOpacity={0.85}
-            >
-              <LinearGradient colors={SUCCESS_BUTTON_GRADIENT} style={ms.buttonGradient}>
-                <Text style={ms.buttonText}>{t('registrationSuccess.btn')}</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-
-          </View>
-        </View>
-      </Modal>
     </LinearGradient>
   );
 }
@@ -505,71 +445,4 @@ const s = StyleSheet.create({
   confirmBtnText:     { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
   backBtn:            { width: '100%', maxWidth: 300, alignSelf: 'center', borderRadius: 16, borderWidth: 1.2, paddingVertical: 12, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6, marginBottom: 8 },
   backBtnText:        { fontSize: 15, fontWeight: '600' },
-});
-
-// ─── Styles del modal de éxito (idénticos a registration-success.tsx) ───
-const ms = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-
-  card: {
-    borderRadius: 26,
-    paddingHorizontal: 32,
-    paddingVertical: 40,
-    width: '100%',
-    maxWidth: 420,
-    alignItems: 'center',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.18,
-    shadowRadius: 18,
-    elevation: 8,
-  },
-
-  iconCircle: {
-    width: 100, height: 100,
-    borderRadius: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 28,
-  },
-
-  title: {
-    fontSize: 24,
-    fontWeight: '900',
-    textAlign: 'center',
-    marginBottom: 12,
-    lineHeight: 32,
-  },
-  subtitle: {
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 28,
-  },
-
-  divider: {
-    width: '80%',
-    height: 1,
-    marginBottom: 28,
-  },
-
-  button: {
-    width: '70%',
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  buttonGradient: {
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '700',
-  },
 });

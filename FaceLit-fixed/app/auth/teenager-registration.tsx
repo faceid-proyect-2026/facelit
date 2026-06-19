@@ -9,20 +9,25 @@
 //  1. "Acércate más" — simulada, tras 1.5s pasa a "posición correcta"
 //  2. Brillo de imagen — real, lee píxeles del canvas/foto
 // ─────────────────────────────────────────────
-import { useState, useRef, useCallback, useEffect } from 'react';
-import {
-  View, Text, TouchableOpacity, StyleSheet,
-  ScrollView, ActivityIndicator, Image, Platform,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { useTranslation } from 'react-i18next';
-import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
-import { useTheme } from '@/shared/contexts/ThemeContext';
 import { Colors } from '@/shared/constants/colors';
 import { FontSize, FontWeight } from '@/shared/constants/typography';
-import { Routes } from '@/shared/constants/routes';
+import { useTheme } from '@/shared/contexts/ThemeContext';
+import { Ionicons } from '@expo/vector-icons';
+import { CameraType, CameraView, useCameraPermissions } from 'expo-camera';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import {
+  ActivityIndicator, Image,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text, TouchableOpacity,
+  View,
+} from 'react-native';
+// import { Routes } from '@/shared/constants/routes'; // ya no se usa: el modal de éxito reemplazó la navegación
 import GradientBackground from '@/shared/components/layout/GradientBackground';
 
 // ── Constantes ────────────────────────────────
@@ -36,6 +41,9 @@ const INSTRUCTION_KEYS = [
 
 const POSITIONING_DELAY_MS  = 1500; // tiempo simulado de "acércate más"
 const MIN_BRIGHTNESS_SCORE  = 60;   // umbral de brillo (0–255)
+
+// ── Modal de éxito ─────────────────────────────
+const SUCCESS_BUTTON_GRADIENT = ['#72C96D', '#65B361', '#4FA14B'] as const;
 
 type ScreenState = 'idle' | 'requesting' | 'positioning' | 'ready' | 'captured';
 type CaptureQuality = 'checking' | 'good' | 'lowLight';
@@ -243,6 +251,7 @@ export default function TeenagerRegistrationScreen() {
   const [photoUri, setPhotoUri]           = useState<string | null>(null);
   const [isTaking, setIsTaking]           = useState(false);
   const [quality, setQuality]             = useState<CaptureQuality>('checking');
+  const [successModalVisible, setSuccessModalVisible] = useState(false);
 
   const cameraRef = useRef<CameraView>(null);
   const positioningTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -343,8 +352,14 @@ export default function TeenagerRegistrationScreen() {
   // ── Finalizar ──────────────────────────────────
   const handleFinish = useCallback(() => {
     if (screenState !== 'captured' || !photoUri || quality !== 'good') return;
-    router.replace(Routes.AUTH.REGISTRATION_SUCCESS as any);
+    setSuccessModalVisible(true);
   }, [screenState, photoUri, quality]);
+
+  // Al cerrar el modal, recién ahí se navega al login.
+  const handleCloseSuccessModal = useCallback(() => {
+    setSuccessModalVisible(false);
+    router.replace('/auth/login');
+  }, []);
 
   const canFinish = screenState === 'captured' && quality === 'good';
 
@@ -523,6 +538,52 @@ export default function TeenagerRegistrationScreen() {
 
         </View>
       </ScrollView>
+
+      {/* ── Modal de éxito de registro facial ── */}
+      <Modal
+        visible={successModalVisible}
+        animationType="fade"
+        transparent
+        onRequestClose={() => {}} // bloquea cierre con botón atrás; se cierra solo con el botón
+      >
+        <View style={ms.overlay}>
+          <View style={[ms.card, { backgroundColor: cardBg, shadowColor: isDark ? '#000000' : '#1C3A1D' }]}>
+
+            {/* Círculo con check */}
+            <View style={[ms.iconCircle, { backgroundColor: theme.primary }]}>
+              <Ionicons name="checkmark" size={52} color="#FFFFFF" />
+            </View>
+
+            {/* Título */}
+            <Text style={[ms.title, { color: text }]}>
+              {t('registrationSuccess.title')}
+            </Text>
+
+            {/* Subtítulo */}
+            <Text style={[ms.subtitle, { color: muted }]}>
+              {t('registrationSuccess.subtitle')}
+            </Text>
+
+            {/* Separador */}
+            <View style={[
+              ms.divider,
+              { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' },
+            ]} />
+
+            {/* Botón */}
+            <TouchableOpacity
+              style={ms.button}
+              onPress={handleCloseSuccessModal}
+              activeOpacity={0.85}
+            >
+              <LinearGradient colors={SUCCESS_BUTTON_GRADIENT} style={ms.buttonGradient}>
+                <Text style={ms.buttonText}>{t('registrationSuccess.btn')}</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+
+          </View>
+        </View>
+      </Modal>
     </GradientBackground>
   );
 }
@@ -532,7 +593,7 @@ const s = StyleSheet.create({
   scroll: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 32, paddingHorizontal: 20 },
 
   card: {
-    width: '100%', maxWidth: 480, borderRadius: 26, borderWidth: 1,
+    width: '100%', maxWidth: 900, borderRadius: 26, borderWidth: 1,
     paddingHorizontal: 24, paddingVertical: 30,
     shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.18, shadowRadius: 18, elevation: 8,
   },
@@ -542,7 +603,7 @@ const s = StyleSheet.create({
   title:      { fontSize: FontSize['3xl'], fontWeight: FontWeight.black, textAlign: 'center', marginBottom: 8 },
   subtitle:   { fontSize: FontSize.md, textAlign: 'center', lineHeight: 20 },
 
-  cameraBox: { height: 280, borderRadius: 20, borderWidth: 2, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
+  cameraBox: { width: '100%', maxWidth: 420, height: 420, alignSelf: 'center', borderRadius: 20, borderWidth: 2, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
   centerState: { alignItems: 'center', gap: 14, padding: 20 },
   faceFrame:   { width: 110, height: 110, borderRadius: 55, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   hintText:    { fontSize: FontSize.md, fontWeight: FontWeight.semibold, textAlign: 'center' },
@@ -580,4 +641,71 @@ const s = StyleSheet.create({
   finishBtnDisabled: { opacity: 0.55 },
   finishBtnInner:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 14 },
   finishBtnText:     { color: Colors.white, fontSize: FontSize.lg, fontWeight: FontWeight.bold },
+});
+
+// ─── Styles del modal de éxito ────────────────
+const ms = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+
+  card: {
+    borderRadius: 26,
+    paddingHorizontal: 32,
+    paddingVertical: 40,
+    width: '100%',
+    maxWidth: 420,
+    alignItems: 'center',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
+    elevation: 8,
+  },
+
+  iconCircle: {
+    width: 100, height: 100,
+    borderRadius: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 28,
+  },
+
+  title: {
+    fontSize: 24,
+    fontWeight: '900',
+    textAlign: 'center',
+    marginBottom: 12,
+    lineHeight: 32,
+  },
+  subtitle: {
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 28,
+  },
+
+  divider: {
+    width: '80%',
+    height: 1,
+    marginBottom: 28,
+  },
+
+  button: {
+    width: '70%',
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  buttonGradient: {
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '700',
+  },
 });

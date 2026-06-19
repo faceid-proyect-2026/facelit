@@ -277,7 +277,7 @@ const de = {
     emailPlaceholder: 'email@beispiel.com',
     emailWarning:    'Muss sich von der E-Mail-Adresse des Minderjährigen unterscheiden: ',
 
-    validateBtn:         'E-Mail bestätigen — erforderlich zum Fortfahren',
+    validateBtn:         'E-Mail bestätigen',
     validateBtnDone:     'E-Mail des Erziehungsberechtigten bestätigt ✓',
 
     consentText:  'Ich bestätige, dass ich die Registrierung und Verarbeitung der Daten des Minderjährigen gemäß ',

@@ -279,7 +279,7 @@ minorConsent: {
   emailPlaceholder: 'correo@ejemplo.com',
   emailWarning:    'Debe ser diferente al correo del menor: ',
 
-  validateBtn:         'Validar correo — obligatorio para continuar',
+  validateBtn:         'Validar correo',
   validateBtnDone:     'Correo del acudiente validado ✓',
 
   consentText:  'Confirmo que autorizo el registro y tratamiento de datos del menor, según lo establecido en la ',

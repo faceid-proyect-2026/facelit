@@ -278,7 +278,7 @@ const en = {
     emailPlaceholder: 'email@example.com',
     emailWarning:    'Must be different from the minor\'s email: ',
 
-    validateBtn:         'Validate email — required to continue',
+    validateBtn:         'Validate email',
     validateBtnDone:     'Guardian\'s email validated ✓',
 
     consentText:  'I confirm that I authorize the registration and processing of the minor\'s data, as established in ',

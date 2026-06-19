@@ -2,14 +2,14 @@
 //  app/auth/privacy-notice.tsx
 //  Aviso de privacidad — con i18n
 // ─────────────────────────────────────────────
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Linking } from 'react-native';
+import GradientBackground from '@/shared/components/layout/GradientBackground';
+import { Colors } from '@/shared/constants/colors';
+import { Routes } from '@/shared/constants/routes';
+import { FontSize, FontWeight } from '@/shared/constants/typography';
+import { useTheme } from '@/shared/contexts/ThemeContext';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from '@/shared/contexts/ThemeContext';
-import { Colors } from '@/shared/constants/colors';
-import { FontSize, FontWeight } from '@/shared/constants/typography';
-import { Routes } from '@/shared/constants/routes';
-import GradientBackground from '@/shared/components/layout/GradientBackground';
+import { Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const PRIVACY_URL = 'https://www.funcionpublica.gov.co/eva/gestornormativo/norma.php?i=49981';
 
@@ -104,7 +104,7 @@ const s = StyleSheet.create({
   },
   card: {
     width:             '100%',
-    maxWidth:          520,
+    maxWidth:          800,        // ← aumentado (antes 520)
     borderRadius:      26,
     paddingHorizontal: 26,
     paddingVertical:   28,
@@ -115,13 +115,15 @@ const s = StyleSheet.create({
   },
   closeBtn:  { alignSelf: 'flex-end', marginBottom: 8 },
   closeText: { fontSize: FontSize['2xl'], fontWeight: FontWeight.bold },
-  title:     { fontSize: FontSize['3xl'], fontWeight: FontWeight.black, textAlign: 'center', marginBottom: 8 },
-  subtitle:  { fontSize: FontSize.base, textAlign: 'center', marginBottom: 20 },
-  body:      { fontSize: FontSize.base, lineHeight: 22, marginBottom: 14 },
-  listRow:   { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8, paddingLeft: 6 },
-  bullet:    { fontSize: FontSize.base, marginRight: 8, lineHeight: 22 },
-  listItem:  { flex: 1, fontSize: FontSize.base, lineHeight: 22 },
-  warning:   { fontSize: FontSize.base, color: Colors.error, marginVertical: 12, lineHeight: 22, fontWeight: FontWeight.bold },
-  bold:      { fontWeight: FontWeight.bold },
-  link:      { fontSize: FontSize.base, fontWeight: FontWeight.bold, textDecorationLine: 'underline' },
+
+  title:    { fontSize: FontSize['3xl'], fontWeight: FontWeight.black, textAlign: 'center', marginBottom: 8 },
+  subtitle: { fontSize: FontSize.base,  textAlign: 'center',          marginBottom: 40 },
+
+  body:     { fontSize: FontSize.base, lineHeight: 22, marginBottom: 14 },
+  listRow:  { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8, paddingLeft: 6 },
+  bullet:   { fontSize: FontSize.base, marginRight: 8, lineHeight: 22 },
+  listItem: { flex: 1, fontSize: FontSize.base, lineHeight: 22 },
+  warning:  { fontSize: FontSize.base, color: Colors.error, marginVertical: 12, lineHeight: 22, fontWeight: FontWeight.bold },
+  bold:     { fontWeight: FontWeight.bold },
+  link:     { fontSize: FontSize.base, fontWeight: FontWeight.bold, textDecorationLine: 'underline' },
 });

@@ -9,14 +9,27 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "FaceLit necesita acceso a la cámara para registrar y reconocer tu rostro como método de control de asistencia.",
+        "NSPhotoLibraryUsageDescription": "FaceLit necesita acceso a la galería para guardar las capturas faciales del registro."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png",
         "backgroundColor": "#0A1A10"
-      }
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ],
+      "package": "com.anonymous.facelitmobile"
     },
     "web": {
       "bundler": "metro",
@@ -34,7 +47,18 @@
           "resizeMode": "contain",
           "backgroundColor": "#0A1A10"
         }
-      ]
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "FaceLit necesita acceso a la cámara para registrar y reconocer tu rostro como método de control de asistencia.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
+      "@react-native-community/datetimepicker",
+      "expo-localization",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true

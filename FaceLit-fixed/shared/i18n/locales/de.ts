@@ -1,0 +1,427 @@
+const de = {
+// ─────────────────────────────────────────────
+//  Modul 1 – Authentifizierung
+// ─────────────────────────────────────────────
+  //Login Page
+  common: {
+    cancel:  'Abbrechen',
+    accept:  'Akzeptieren',
+    save:    'Speichern',
+    back:    'Zurück',
+    loading: 'Wird geladen...',
+    error:   'Fehler',
+    yes:     'Ja',
+    no:      'Nein',
+  },
+  theme: {
+    toggle: 'Design',
+    light:  'Hell',
+    dark:   'Dunkel',
+  },
+  landing: {
+    contactTitle:    'Kontakt',
+    contactText:     'Support, Projektinformationen oder Hilfe mit Ihrem Konto.',
+    contactEmail:    'support@facelit.com',
+    contactPhone:    '+57 300 000 0000',
+    contactLocation: 'SENA — Kolumbien',
+    footerPrivacy:   'Datenschutz',
+    footerRights:    'Rechte',
+  },
+
+  nav: {
+    app:      'App',
+    security: 'Sicherheit',
+    contact:  'Kontakt',
+  },
+  hero: {
+    pill:        'Intelligentes System · SENA',
+    title1:      'Die',
+    title2:      'Anwesenheitskontrolle',
+    titleAccent: 'akademisch\ntransformieren',
+    description: 'FaceLit automatisiert die Anwesenheitserfassung durch Gesichtserkennung und biometrische Intelligenz – für Authentizität, Sicherheit und Effizienz bei jedem Eintritt.',
+    createAccount: 'Konto erstellen',
+    login:         'Ich habe bereits ein Konto',
+    metric1: 'Verfügbarkeit',
+    metric2: 'Erkennung',
+    metric3: 'Automatisiert',
+    metric4: 'Identitätsdiebstahl',
+    phoneInfo: 'Biometrische Identifikation in Echtzeit für das SENA',
+  },
+  problems: {
+    sectionTitle: 'Warum wurde FaceLit entwickelt?',
+    sectionText:  'In vielen Bildungsumgebungen verursacht die manuelle Anwesenheitskontrolle häufige Probleme. Traditionelle Methoden beanspruchen zwischen 5 und 10 Minuten pro Unterrichtstag.',
+    item1Title: 'Zeitverlust',
+    item1Text:  'Manuelle Eintragungen zu Unterrichtsbeginn kosten wertvolle Minuten jedes Schultages.',
+    item2Title: 'Fehler und Inkonsistenzen',
+    item2Text:  'Menschliche Fehler bei Eintragungen und Schwierigkeiten bei der Erstellung von Berichten und der disziplinarischen Nachverfolgung.',
+    item3Title: 'Identitätsdiebstahl',
+    item3Text:  'Traditionelle Methoden können die Identität des Lernenden nicht verifizieren.',
+  },
+  offers: {
+    sectionTitle: 'Was bietet FaceLit?',
+    item1Title: 'Intelligente Erfassung',
+    item1Text:  'Identifiziert Lernende automatisch durch Gesichtserkennung.',
+    item2Title: 'Biometrische Sicherheit',
+    item2Text:  'Jede Anwesenheit wird mit dem einzigartigen Gesicht des Nutzers verknüpft.',
+    item3Title: 'Zeitoptimierung',
+    item3Text:  'Reduziert den Zeitaufwand für manuelle Listen und traditionelle Prozesse.',
+    item4Title: 'Echtzeitberichte',
+    item4Text:  'Erstellt automatische Berichte über An- und Abwesenheiten.',
+    item5Title: 'Moderne und zugängliche Plattform',
+    item5Text:  'Intuitive Benutzeroberflächen für Smartphones, Tablets und Webumgebungen.',
+  },
+  objective: {
+    title:       'Projektziel',
+    description: 'Entwicklung eines intelligenten Systems zur Erfassung und Kontrolle der akademischen Anwesenheit mittels Gesichtserkennung für das SENA.',
+    char1: 'Registrierung von Lernenden, Ausbildern und Administratoren',
+    char2: 'Erfassung und Speicherung biometrischer Gesichtsdaten',
+    char3: 'Echtzeiterkennung und -identifikation',
+    char4: 'Automatische Erfassung von Ein- und Ausgängen',
+    char5: 'Validierung von Räumen und Stundenplänen',
+    char6: 'Automatische Berichterstellung',
+    char7: 'Intelligente Benachrichtigungen',
+    char8: 'Protokolle und Systemrückverfolgbarkeit',
+    char9: 'Integration mit IoT-Geräten',
+  },
+  tech: {
+    title:    'Verwendete Technologien',
+    subtitle: 'FaceLit integriert moderne Technologien mit Fokus auf Leistung und Sicherheit.',
+    label1: 'KI-Gesichtserkennung',
+    label2: 'UI/UX-Design Figma',
+    label3: 'Web und Mobil',
+    label4: 'Skalierbare Architektur',
+    label5: 'Akademische Datenbank',
+    label6: 'Berichtsautomatisierung',
+    label7: 'Biometrische Authentifizierung',
+  },
+  innovation: {
+    title:   'Innovation für die Bildung der Zukunft',
+    text:    'FaceLit transformiert das akademische Erlebnis durch intelligente Technologie und stärkt Sicherheit und Effizienz des SENA.',
+    pill1: 'Mehr Präzision',
+    pill2: 'Mehr Sicherheit',
+    pill3: 'Mehr Zeit zum Lernen',
+  },
+
+  //Login
+  login: {
+    title:          'Anmeldung',
+    subtitle:       'Geben Sie Ihre Anmeldedaten ein',
+    email:          'E-Mail-Adresse',
+    emailPlaceholder: 'email@beispiel.com',
+    password:       'Passwort',
+    passwordPlaceholder: '********',
+    policyPrefix:   'Ich habe die',
+    policyLink:     'Datenschutzerklärung',
+    policySuffix:   'gelesen und akzeptiere sie',
+    policyError:    'Sie müssen die Datenschutzerklärung akzeptieren',
+    loginBtn:       'Anmelden',
+    forgotPassword: 'Passwort vergessen?',
+    noAccount:      'Noch kein Konto?',
+    registerLink:   'Hier registrieren',
+    errors: {
+      emailNotFound:  'E-Mail-Adresse nicht registriert',
+      wrongPassword:  'Falsches Passwort',
+    },
+  },
+
+  //Privacy Notice
+  privacyNotice: {
+    title:       'Datenschutzerklärung',
+    subtitle:    'Informationen zur Verarbeitung Ihrer personenbezogenen Daten',
+    body1:       'Gemäß Gesetz 1581 von 2012 werden Ihre personenbezogenen Daten zu folgenden Zwecken verarbeitet:',
+    item1:       'Identifikation und Authentifizierung im Anwesenheitssystem',
+    item2:       'Erfassung und Kontrolle der Anwesenheit mittels biometrischer Daten',
+    item3:       'Erstellung von Berichten und Pünktlichkeitsstatistiken',
+    item4:       'Übermittlung wichtiger Benachrichtigungen',
+    warning:     'Ihre Zugangsdaten sind persönlich und nicht übertragbar. Teilen Sie diese nicht mit Dritten.',
+    body2:       'Sie haben jederzeit das Recht, Ihre personenbezogenen Daten einzusehen, zu aktualisieren und zu berichtigen.',
+    moreInfo:    'Weitere Informationen: ',
+  },
+
+  //Password Recovery
+  passwordRecovery: {
+    title:       'Passwort zurücksetzen',
+    subtitle:    'Geben Sie Ihre E-Mail-Adresse ein, um Anweisungen zur Wiederherstellung zu erhalten',
+    emailLabel:  'E-Mail-Adresse',
+    emailPlaceholder: 'email@beispiel.com',
+    sendBtn:     'Code senden',
+    cancelBtn:   'Abbrechen',
+    errors: {
+      invalidEmail:    'Ungültige E-Mail-Adresse',
+      emailNotFound:   'Diese E-Mail-Adresse ist nicht registriert',
+    },
+  },
+
+  //Token Sent
+  tokenSent: {
+    title:    'Code gesendet',
+    subtitle: 'Wir haben einen Bestätigungscode an Ihre E-Mail-Adresse gesendet. Bitte überprüfen Sie Ihr Postfach, um fortzufahren.',
+    btn:      'Verstanden',
+  },
+
+  //Verify Identity
+  verifyIdentity: {
+    backBtn:       '← Neuen Code anfordern',
+    title:         'Identität bestätigen',
+    subtitle:      'Ein 6-stelliger Code wurde gesendet an',
+    timerLabel:    '⏰ Verbleibende Zeit ',
+    resendBtn:     'Code erneut senden',
+    inputLabel:    'Bestätigungscode',
+    placeholder:   'XXXXXX',
+    hint:          'Geben Sie den 6-stelligen Code ein',
+    verifyBtn:     'Code bestätigen',
+    errors: {
+      length:      'Sie müssen 6 Ziffern eingeben',
+      invalid:     'Ungültiger Token',
+    },
+  },
+
+  //New Password
+  newPassword: {
+    backBtn:      '← Neuen Code anfordern',
+    title:        'Neues Passwort',
+    subtitle:     'Erstellen Sie ein sicheres Passwort, das den Systemrichtlinien entspricht.',
+    reqTitle:     'Passwortanforderungen:',
+    req: {
+      length:  'Zwischen 8 und 15 Zeichen',
+      upper:   'Mindestens ein Großbuchstabe',
+      lower:   'Mindestens ein Kleinbuchstabe',
+      number:  'Mindestens eine Ziffer',
+      symbol:  'Mindestens ein Sonderzeichen',
+    },
+    passwordLabel:        'Neues Passwort',
+    passwordPlaceholder:  'Erstellen Sie Ihr neues Passwort',
+    confirmLabel:         'Passwort bestätigen',
+    confirmPlaceholder:   'Wiederholen Sie Ihr neues Passwort',
+    submitBtn:            'Passwort zurücksetzen',
+    errors: {
+      passwordRequired:  'Das Passwort ist erforderlich',
+      passwordInvalid:   'Erfüllt die Sicherheitsanforderungen nicht',
+      confirmRequired:   'Sie müssen das Passwort bestätigen',
+      confirmMismatch:   'Die Passwörter stimmen nicht überein',
+    },
+  },
+
+  //Password Reset Done
+  passwordResetDone: {
+    title:          'Passwort zurückgesetzt',
+    subtitle1:      'Ihr Passwort wurde erfolgreich aktualisiert.',
+    subtitle2:      'Sie können sich jetzt mit Ihrem neuen Passwort anmelden.',
+    securityTitle:  'Sicherheitsprotokoll:',
+    security: {
+      item1: '✓ Passwort verschlüsselt und sicher gespeichert',
+      item2: '✓ Wiederherstellungscode ungültig gemacht',
+      item3: '✓ Ereignis in Audit-Protokollen erfasst',
+      item4: '✓ Konformität mit Gesetz 1581 von 2012',
+    },
+    loginBtn: 'Zur Anmeldung',
+  },
+
+  //Rights
+  rights: {
+    title1:    'Ihre Rechte bezüglich',
+    title2:    'personenbezogener Daten',
+    subtitle:  'Erfahren Sie, wie Ihre Rechte gemäß',
+    lawLabel:  'Gesetz 1581 von 2012',
+    items: {
+      access: {
+        title: 'Auskunftsrecht',
+        desc:  'Sie haben das Recht zu erfahren, welche personenbezogenen Daten wir in unserem System über Sie gespeichert haben.',
+      },
+      update: {
+        title: 'Aktualisierungsrecht',
+        desc:  'Sie können Ihre personenbezogenen Daten aktualisieren, wenn diese unrichtig oder unvollständig sind.',
+      },
+      rectification: {
+        title: 'Berichtigungsrecht',
+        desc:  'Sie haben das Recht, die Korrektur unrichtiger Daten zu beantragen, die wir über Sie gespeichert haben.',
+      },
+      deletion: {
+        title: 'Löschungsrecht',
+        desc:  'Sie können die Löschung Ihrer Daten beantragen, wenn diese für die Verarbeitungszwecke nicht mehr erforderlich sind.',
+      },
+      revocation: {
+        title: 'Widerrufsrecht',
+        desc:  'Sie können die erteilte Einwilligung zur Verarbeitung Ihrer Daten jederzeit widerrufen.',
+      },
+    },
+    importantLabel: 'Wichtig: ',
+    importantText:  'Durch das Lesen und Akzeptieren dieser Rechte liegt jede Entscheidung über Ihre personenbezogenen Daten in Ihrer alleinigen Verantwortung gemäß den geltenden Vorschriften.',
+  },
+
+  //Registration Success
+  registrationSuccess: {
+    title:    'Registrierung erfolgreich abgeschlossen',
+    subtitle: 'Ihr Konto wurde erfolgreich erstellt. Sie können jetzt auf das System zugreifen.',
+    btn:      'Zur Startseite',
+  },
+
+  //Minor Consent
+  minorConsent: {
+    title:    'Einwilligung erforderlich',
+    subtitle1: 'Wir haben festgestellt, dass Sie ',
+    minorLabel: 'minderjährig sind',
+    subtitle2: '.\nWir benötigen die Genehmigung eines verantwortlichen Erwachsenen, um fortzufahren.',
+    legalText:  'Gemäß ',
+    lawLabel:   'Gesetz 1581 von 2012',
+    legalText2: ' ist die ausdrückliche Einwilligung des verantwortlichen Erwachsenen für die Verarbeitung personenbezogener Daten Minderjähriger erforderlich.',
+
+    sectionGuardian:     'Daten des Erziehungsberechtigten',
+    sectionAuthorization: 'Genehmigung',
+
+    nameLabel:       'Vollständiger Name des Erziehungsberechtigten',
+    namePlaceholder: 'Vor- und Nachname',
+    docLabel:        'Ausweis des Erziehungsberechtigten (10 Ziffern)',
+    docPlaceholder:  '0000000000',
+    emailLabel:      'E-Mail-Adresse des Erziehungsberechtigten',
+    emailPlaceholder: 'email@beispiel.com',
+    emailWarning:    'Muss sich von der E-Mail-Adresse des Minderjährigen unterscheiden: ',
+
+    validateBtn:         'E-Mail bestätigen — erforderlich zum Fortfahren',
+    validateBtnDone:     'E-Mail des Erziehungsberechtigten bestätigt ✓',
+
+    consentText:  'Ich bestätige, dass ich die Registrierung und Verarbeitung der Daten des Minderjährigen gemäß ',
+    consentText2: ' und den zugehörigen Vorschriften genehmige.',
+    moreInfo:     'Weitere Informationen zu Gesetz 1581 von 2012',
+
+    confirmBtn: 'Genehmigung bestätigen',
+    backBtn:    'Zurück zur Registrierung',
+
+    errors: {
+      nameRequired:    'Der Name des Erziehungsberechtigten ist erforderlich',
+      nameIncomplete:  'Geben Sie den vollständigen Vor- und Nachnamen ein',
+      nameLettersOnly: 'Nur Buchstaben sind erlaubt',
+      docRequired:     'Der Ausweis ist erforderlich',
+      docLength:       'Der Ausweis muss genau 10 Ziffern haben',
+      emailRequired:   'Die E-Mail-Adresse ist erforderlich',
+      emailInvalid:    'Ungültiges E-Mail-Format',
+      emailSameMinor:  'Die E-Mail des Erziehungsberechtigten muss sich von der des Minderjährigen unterscheiden',
+      emailNotValidated: 'Sie müssen die E-Mail-Adresse vor dem Fortfahren bestätigen',
+      consentRequired: 'Sie müssen die Genehmigung bestätigen',
+      emailEmpty:      'Geben Sie zuerst die E-Mail-Adresse ein',
+    },
+  },
+
+  //Register
+  register: {
+    title:    'Benutzerregistrierung',
+    subtitle: 'Vervollständigen Sie Ihre Angaben, um Ihr FaceLit-Konto zu erstellen',
+    sections: {
+      personal: 'Persönliche Daten',
+      contact:  'Kontakt',
+      security: 'Sicherheit',
+      other:    'Weitere Angaben',
+      acceptances: 'Zustimmungen',
+    },
+    name:               'Vorname',
+    namePlaceholder:    'Vollständiger Vorname',
+    lastname:           'Nachname',
+    lastnamePlaceholder:'Vollständiger Nachname',
+    identityType:       'Ausweisart',
+    identitySelect:     'Option auswählen',
+    identityTI: 'TI — Identitätskarte (Minderjährige)',
+    identityCC: 'CC — Personalausweis (Volljährige)',
+    identityCE: 'CE — Ausländerausweis',
+    identityPA: 'PA — Reisepass',
+    infoTI: 'TI ist für Minderjährige unter 18 Jahren',
+    infoCC: 'CC ist für Volljährige ab 18 Jahren',
+    document:            'Ausweisnummer (10 Ziffern)',
+    documentPlaceholder: '0000000000',
+    email:              'E-Mail-Adresse',
+    emailPlaceholder:   'email@beispiel.com',
+    validateEmail:      'E-Mail bestätigen — erforderlich zum Fortfahren',
+    emailValidated:     '✓ E-Mail bestätigt',
+    password:           'Passwort',
+    passwordHint:        '8–15 Zeichen · 1 Großbuchstabe · 1 Ziffer · 1 Sonderzeichen',
+    confirmPassword:     'Passwort bestätigen',
+    birthdate:           'Geburtsdatum (8–100 Jahre)',
+    birthdateSelect:     'Datum auswählen',
+    policyText:  'Ich erkläre, dass die Angaben wahrheitsgemäß sind, gemäß',
+    policyLaw:   'Gesetz 1581 von 2012',
+    rightsQuestion: 'Haben Sie Ihre Rechte auf Auskunft, Aktualisierung und Berichtigung Ihrer Daten gelesen und akzeptiert?',
+    rightsYes:   'Ja',
+    rightsNo:    'Nein',
+    rightsRead:  'Meine Rechte lesen',
+    registerBtn: 'Registrieren',
+    cancelBtn:   'Abbrechen',
+    hasAccount:  'Haben Sie bereits ein Konto?',
+    loginLink:   'Anmelden',
+    errors: {
+      nameRequired:       'Der Vorname ist erforderlich',
+      onlyLetters:        'Nur Buchstaben sind erlaubt',
+      lastnameRequired:   'Der Nachname ist erforderlich',
+      identityRequired:   'Wählen Sie eine Ausweisart',
+      documentRequired:   'Ausweis erforderlich',
+      documentLength:     'Muss genau 10 Ziffern haben',
+      emailRequired:      'E-Mail erforderlich',
+      emailInvalid:       'Ungültiges E-Mail-Format',
+      emailNotValidated:  'Sie müssen die E-Mail-Adresse vor dem Fortfahren bestätigen',
+      emailEmpty:         'Geben Sie zuerst die E-Mail-Adresse ein',
+      emailInvalidShort:  'Ungültige E-Mail',
+      passwordRequired:   'Passwort erforderlich',
+      passwordWeak:       'Mindestens 8 und höchstens 15 Zeichen, ein Großbuchstabe, eine Ziffer und ein Sonderzeichen',
+      confirmRequired:    'Bestätigen Sie Ihr Passwort',
+      passwordMismatch:   'Die Passwörter stimmen nicht überein',
+      birthdateRequired:  'Wählen Sie ein Geburtsdatum',
+      ageMin:             'Das Mindestalter beträgt 8 Jahre',
+      ageMax:             'Das Höchstalter beträgt 100 Jahre',
+      tiAdult:            'TI ist nur für Personen unter 18 Jahren',
+      ccMinor:            'CC ist nur für Personen ab 18 Jahren',
+      policyRequired:     'Sie müssen die Richtlinien lesen und akzeptieren',
+      rightsRequired:     'Sie müssen diese Frage beantworten',
+    },
+  },
+
+  //Facial Registration
+  facialReg: {
+    title:    'Gesicht registrieren',
+    subtitle: 'Positionieren Sie Ihr Gesicht vor der Kamera',
+    captureBtn: 'Aufnahme starten',
+    instructions: 'Anweisungen zur Registrierung:',
+    instr1: 'Stellen Sie sich vor die Kamera',
+    instr2: 'Sorgen Sie für ausreichende Beleuchtung',
+    instr3: 'Schauen Sie direkt in die Kamera',
+    instr4: 'Vermeiden Sie Sonnenbrillen oder Hüte',
+    instr5: 'Das System nimmt ein Frontalbild des Gesichts auf',
+    tapToCapture:    'Tippen Sie auf die Schaltfläche, um die Kamera zu aktivieren',
+    requestingPermission: 'Kamerazugriff wird angefordert…',
+    permissionDenied:     'Sie müssen den Kamerazugriff erlauben, um fortzufahren.',
+    moveCloser:   'Kommen Sie etwas näher an die Kamera',
+    goodPosition: 'Gute Position, Sie können aufnehmen',
+    captured:     'Gesicht aufgenommen',
+    captureError: 'Beim Aufnehmen des Fotos ist ein Fehler aufgetreten. Versuchen Sie es erneut.',
+    lowLight:        'Das Bild ist zu dunkel. Verbessern Sie die Beleuchtung und versuchen Sie es erneut.',
+    captureSuccess:  'Gute Aufnahme! Das Gesicht ist klar zu sehen.',
+    retake: 'Erneut aufnehmen',
+    finish: 'Registrierung abschließen',
+  },
+
+  //Email Validation
+  emailValidation: {
+    backBtn:      'Zurück zur Registrierung',
+    title:        'E-Mail bestätigen',
+    subtitle:     'Ein 6-stelliger Code wurde gesendet an',
+    timerLabel:   'Verbleibende Zeit ',
+    resendBtn:    'Code erneut senden',
+    inputLabel:   'Bestätigungscode',
+    placeholder:  'X X X X X X',
+    hint:         'Geben Sie den 6-stelligen Code ein, der an Ihre E-Mail gesendet wurde',
+    verifyBtn:    'Code bestätigen',
+    demoText:     'Demo: Der Code lautet',
+    errors: {
+      expired:    'Der Code ist abgelaufen. Fordern Sie einen neuen an.',
+      length:     'Sie müssen alle 6 Ziffern des Codes eingeben.',
+      invalid:    'Falscher Code. Versuchen Sie es erneut.',
+    },
+  },
+
+  //Email Validated Success
+  emailValidatedSuccess: {
+    title:    'E-Mail bestätigt!',
+    subtitle: 'Ihre E-Mail-Adresse wurde erfolgreich bestätigt.\nSie können mit der Registrierung fortfahren.',
+    btn:      'Registrierung fortsetzen',
+  },
+
+} as const;
+
+export default de;

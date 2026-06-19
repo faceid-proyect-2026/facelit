@@ -436,7 +436,7 @@ const s = StyleSheet.create({
   moreInfoBtn:  { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 14, paddingTop: 12, borderTopWidth: 1 },
   moreInfoText: { fontSize: 12, fontWeight: '600' },
 
-  actionsRow:    { flexDirection: 'row', gap: 12, marginTop: 24, marginBottom: 8 },
+  actionsRow:    { flexDirection: 'row', gap: 250, marginTop: 24, marginBottom: 8 },
   actionsCol:    { flexDirection: 'column', alignItems: 'center', marginTop: 24, marginBottom: 8 },
   actionBtnWide: { flex: 1, maxWidth: undefined, alignSelf: undefined, width: undefined },
 

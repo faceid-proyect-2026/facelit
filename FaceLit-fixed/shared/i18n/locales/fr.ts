@@ -278,7 +278,7 @@ const fr = {
     emailPlaceholder: 'email@exemple.com',
     emailWarning:    'Doit être différente de l\'e-mail du mineur : ',
 
-    validateBtn:         'Valider l\'e-mail — obligatoire pour continuer',
+    validateBtn:         'Valider l\'e-mail',
     validateBtnDone:     'E-mail du tuteur validé ✓',
 
     consentText:  'Je confirme que j\'autorise l\'enregistrement et le traitement des données du mineur, conformément à la ',

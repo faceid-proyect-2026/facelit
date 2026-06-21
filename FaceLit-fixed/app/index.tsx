@@ -1,6 +1,7 @@
 // ─────────────────────────────────────────────
 //  app/index.tsx — Landing Page FaceLit
 // ─────────────────────────────────────────────
+import { useRef, useState } from 'react';
 import {
   Image, Platform, ScrollView, StyleSheet, Text,
   TouchableOpacity, useWindowDimensions, View,
@@ -17,32 +18,15 @@ import { Routes } from '@/shared/constants/routes';
 import { ThemeToggle, LanguageSelector } from '@/shared/components/ui';
 
 // ─── Tipos ────────────────────────────────────
-interface FeatureItem {
-  icon:   string;
-  number: string;
-  title:  string;
-  text:   string;
-}
+interface FeatureItem  { icon: string; number: string; title: string; text: string; }
+interface TechItem     { icon: string; label: string; }
+interface PillItem     { icon: string; label: string; }
+interface ContactItem  { icon: string; text: string;  }
 
-interface TechItem {
-  icon:  string;
-  label: string;
-}
-
-interface PillItem {
-  icon:  string;
-  label: string;
-}
-
-interface ContactItem {
-  icon: string;
-  text: string;
-}
-
-// ─── Iconos estáticos (no se traducen) ────────
-const PROBLEM_ICONS  = ['time-outline', 'alert-circle-outline',  'person-remove-outline'] as const;
-const OFFER_ICONS    = ['scan-outline', 'finger-print-outline',  'speedometer-outline', 'bar-chart-outline', 'phone-portrait-outline'] as const;
-const CLOSING_ICONS  = ['trending-up-outline', 'shield-outline', 'book-outline'] as const;
+// ─── Iconos estáticos ─────────────────────────
+const PROBLEM_ICONS = ['time-outline', 'alert-circle-outline', 'person-remove-outline'] as const;
+const OFFER_ICONS   = ['scan-outline', 'finger-print-outline', 'speedometer-outline', 'bar-chart-outline', 'phone-portrait-outline'] as const;
+const CLOSING_ICONS = ['trending-up-outline', 'shield-outline', 'book-outline'] as const;
 
 const TECHNOLOGIES: TechItem[] = [
   { icon: 'scan-outline',           label: 'tech.label1' },
@@ -60,44 +44,40 @@ const OBJECTIVE_KEYS = [
   'objective.char7', 'objective.char8', 'objective.char9',
 ] as const;
 
-// ─── Sub-component: MetricCard ────────────────
+// ─── Sub-components ───────────────────────────
 function MetricCard({ icon, value, label, color, muted }: {
-  icon: string; value: string; label: string;
-  color: string; muted: string;
+  icon: string; value: string; label: string; color: string; muted: string;
 }) {
   return (
-    <View style={metric.wrap}>
+    <View style={mc.wrap}>
       <Ionicons name={icon as any} size={18} color={color} style={{ marginBottom: 4 }} />
-      <Text style={[metric.value, { color }]}>{value}</Text>
-      <Text style={[metric.label, { color: muted }]}>{label}</Text>
+      <Text style={[mc.value, { color }]}>{value}</Text>
+      <Text style={[mc.label, { color: muted }]}>{label}</Text>
     </View>
   );
 }
-
-const metric = StyleSheet.create({
+const mc = StyleSheet.create({
   wrap:  { minWidth: 90, alignItems: 'center' },
   value: { fontSize: FontSize['2xl'], fontWeight: FontWeight.black },
   label: { fontSize: FontSize.xs, marginTop: 2, fontWeight: FontWeight.bold, textAlign: 'center' },
 });
 
-// ─── Sub-component: FeatureCard ───────────────
 function FeatureCard({ icon, number, title, text, bg, border, heading, body, accent }: {
   icon: string; number: string; title: string; text: string;
   bg: string; border: string; heading: string; body: string; accent: string;
 }) {
   return (
-    <View style={[feature.wrap, { backgroundColor: bg, borderColor: border }]}>
-      <View style={[feature.iconWrap, { backgroundColor: accent + '18' }]}>
+    <View style={[fc.wrap, { backgroundColor: bg, borderColor: border }]}>
+      <View style={[fc.iconWrap, { backgroundColor: accent + '18' }]}>
         <Ionicons name={icon as any} size={22} color={accent} />
       </View>
-      <Text style={[feature.number, { color: accent   }]}>{number}</Text>
-      <Text style={[feature.title,  { color: heading  }]}>{title}</Text>
-      <Text style={[feature.text,   { color: body     }]}>{text}</Text>
+      <Text style={[fc.number, { color: accent  }]}>{number}</Text>
+      <Text style={[fc.title,  { color: heading }]}>{title}</Text>
+      <Text style={[fc.text,   { color: body    }]}>{text}</Text>
     </View>
   );
 }
-
-const feature = StyleSheet.create({
+const fc = StyleSheet.create({
   wrap:     { flex: 1, minWidth: 220, borderRadius: 12, borderWidth: 1, padding: 22 },
   iconWrap: { width: 44, height: 44, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
   number:   { fontSize: FontSize.sm, fontWeight: FontWeight.black, marginBottom: 6 },
@@ -112,7 +92,42 @@ export default function LandingScreen() {
   const { width }         = useWindowDimensions();
   const isWide            = width >= 820;
 
-  // ── Colores semánticos locales ──
+  // ── Refs ──────────────────────────────────────
+  const scrollRef    = useRef<ScrollView>(null);
+  const offersRef    = useRef<View>(null);
+  const objectiveRef = useRef<View>(null);
+  const contactRef   = useRef<View>(null);
+
+  // ── Estado botón flotante ─────────────────────
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  // ── Navegación al login desde el logo ─────────
+  const goToLogin = () => {
+    router.push(Routes.AUTH.LOGIN as any);
+  };
+
+  // ── Sube al inicio de la página ───────────────
+  const goToTop = () => {
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
+  };
+
+  // ── Scroll a sección — web + móvil ───────────
+  const scrollToSection = (ref: React.RefObject<View | null>) => {
+    if (!ref.current) return;
+    if (Platform.OS === 'web') {
+      (ref.current as any)?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    const node = (scrollRef.current as any)?.getScrollableNode?.();
+    if (!node) return;
+    (ref.current as View).measureLayout(
+      node,
+      (_l: number, top: number) => scrollRef.current?.scrollTo({ y: top - 80, animated: true }),
+      () => {}
+    );
+  };
+
+  // ── Colores locales ────────────────────────────
   const cardBg     = isDark ? '#111827'                 : Colors.white;
   const softCardBg = isDark ? '#1A1F2E'                 : '#F4FAF2';
   const heading    = isDark ? Colors.dark.text          : '#0D1F0A';
@@ -120,7 +135,7 @@ export default function LandingScreen() {
   const muted      = isDark ? Colors.dark.textMuted     : Colors.light.textMuted;
   const border     = isDark ? 'rgba(101,179,97,0.18)'   : 'rgba(101,179,97,0.25)';
 
-  // ── Arrays construidos dentro del componente con t() ──
+  // ── Arrays con t() ────────────────────────────
   const PROBLEMS: FeatureItem[] = [
     { icon: PROBLEM_ICONS[0], number: '01', title: t('problems.item1Title'), text: t('problems.item1Text') },
     { icon: PROBLEM_ICONS[1], number: '02', title: t('problems.item2Title'), text: t('problems.item2Text') },
@@ -151,27 +166,47 @@ export default function LandingScreen() {
     ? require('@/assets/images/logo.png')
     : require('@/assets/images/logo2.png');
 
+  // ── Render ────────────────────────────────────
   return (
-    <LinearGradient
-      colors={isDark
-        ? ['#050505', '#071810', '#0D2B1A']
-        : ['#FFFFFF', '#F2FFF0', '#E8F8E4']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={s.page}
-    >
+    <View style={s.page}>
+      <LinearGradient
+        colors={isDark
+          ? ['#050505', '#071810', '#0D2B1A']
+          : ['#FFFFFF', '#F2FFF0', '#E8F8E4']}
+        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
+
       <SafeAreaView style={s.safe}>
-        <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollRef}
+          contentContainerStyle={s.scroll}
+          showsVerticalScrollIndicator={false}
+          onScroll={e => setShowScrollTop(e.nativeEvent.contentOffset.y > 300)}
+          scrollEventThrottle={16}
+        >
 
           {/* ── Header ── */}
           <View style={[s.header, { borderBottomColor: border }]}>
-            <Image source={logoSource} style={s.logo} resizeMode="contain" />
 
+            {/* Logo → navega al login */}
+            <TouchableOpacity onPress={goToLogin} activeOpacity={0.8} style={s.logoBtn}>
+              <Image source={logoSource} style={s.logo} resizeMode="contain" />
+            </TouchableOpacity>
+
+            {/* Nav links */}
             {isWide && (
               <View style={s.nav}>
-                {(['nav.app', 'nav.security', 'nav.contact'] as const).map((key) => (
-                  <Text key={key} style={[s.navText, { color: muted }]}>{t(key)}</Text>
-                ))}
+                <TouchableOpacity onPress={() => scrollToSection(offersRef)} activeOpacity={0.75} style={s.navBtn}>
+                  <Text style={[s.navText, { color: theme.primary }]}>{t('nav.app')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => scrollToSection(objectiveRef)} activeOpacity={0.75} style={s.navBtn}>
+                  <Text style={[s.navText, { color: theme.primary }]}>{t('nav.security')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => scrollToSection(contactRef)} activeOpacity={0.75} style={s.navBtn}>
+                  <Text style={[s.navText, { color: theme.primary }]}>{t('nav.contact')}</Text>
+                </TouchableOpacity>
               </View>
             )}
 
@@ -184,24 +219,19 @@ export default function LandingScreen() {
           {/* ── Hero ── */}
           <View style={[s.hero, isWide && s.heroWide]}>
             <View style={s.heroCopy}>
-
-              {/* Pill */}
               <View style={[s.pill, { backgroundColor: theme.primaryFaint, borderColor: border }]}>
                 <View style={[s.pillDot, { backgroundColor: theme.primary }]} />
                 <Text style={[s.pillText, { color: theme.primary }]}>{t('hero.pill')}</Text>
               </View>
 
-              {/* Título */}
               <Text style={[s.heroTitle, { color: heading }, isWide && s.heroTitleWide]}>
                 {t('hero.title1')}{'\n'}{t('hero.title2')}{' '}
                 <Text style={{ color: theme.primary }}>{t('hero.titleAccent')}</Text>
               </Text>
 
               <View style={[s.heroDivider, { backgroundColor: theme.primary }]} />
-
               <Text style={[s.heroText, { color: body }]}>{t('hero.description')}</Text>
 
-              {/* CTAs */}
               <View style={s.ctaRow}>
                 <TouchableOpacity
                   onPress={() => router.push(Routes.AUTH.REGISTER as any)}
@@ -231,18 +261,23 @@ export default function LandingScreen() {
                 </TouchableOpacity>
               </View>
 
-              {/* Métricas */}
               <View style={s.metrics}>
-                <MetricCard icon="time-outline"              value="24/7" label={t('hero.metric1')} color={theme.primary} muted={muted} />
-                <MetricCard icon="scan-outline"              value="IA"   label={t('hero.metric2')} color={theme.primary} muted={muted} />
-                <MetricCard icon="checkmark-circle-outline"  value="100%" label={t('hero.metric3')} color={theme.primary} muted={muted} />
-                <MetricCard icon="shield-checkmark-outline"  value="0"    label={t('hero.metric4')} color={theme.primary} muted={muted} />
+                <MetricCard icon="time-outline"             value="24/7" label={t('hero.metric1')} color={theme.primary} muted={muted} />
+                <MetricCard icon="scan-outline"             value="IA"   label={t('hero.metric2')} color={theme.primary} muted={muted} />
+                <MetricCard icon="checkmark-circle-outline" value="100%" label={t('hero.metric3')} color={theme.primary} muted={muted} />
+                <MetricCard icon="shield-checkmark-outline" value="0"    label={t('hero.metric4')} color={theme.primary} muted={muted} />
               </View>
             </View>
 
             {/* Mockup */}
-            <View style={[s.heroVisual, { backgroundColor: isDark ? 'rgba(101,179,97,0.04)' : 'rgba(101,179,97,0.06)', borderColor: border }]}>
-              <View style={[s.mockPhone, { borderColor: theme.primary, backgroundColor: isDark ? '#080F0B' : Colors.white }]}>
+            <View style={[s.heroVisual, {
+              backgroundColor: isDark ? 'rgba(101,179,97,0.04)' : 'rgba(101,179,97,0.06)',
+              borderColor: border,
+            }]}>
+              <View style={[s.mockPhone, {
+                borderColor: theme.primary,
+                backgroundColor: isDark ? '#080F0B' : Colors.white,
+              }]}>
                 <View style={s.phoneBrand}>
                   <Image source={logoSource} style={s.phoneLogo} resizeMode="contain" />
                 </View>
@@ -267,29 +302,29 @@ export default function LandingScreen() {
             <Text style={[s.sectionTitle, { color: heading }]}>{t('problems.sectionTitle')}</Text>
             <Text style={[s.sectionText,  { color: body    }]}>{t('problems.sectionText')}</Text>
             <View style={[s.features, isWide && s.featuresWide]}>
-              {PROBLEMS.map((item) => (
+              {PROBLEMS.map(item => (
                 <FeatureCard key={item.number} {...item} bg={softCardBg} border={border} heading={heading} body={body} accent={theme.primary} />
               ))}
             </View>
           </View>
 
           {/* ── ¿Qué ofrece FaceLit? ── */}
-          <View style={s.section}>
+          <View ref={offersRef} style={s.section}>
             <Text style={[s.sectionTitle, { color: heading }]}>{t('offers.sectionTitle')}</Text>
             <View style={[s.features, isWide && s.featuresWide]}>
-              {OFFERS.map((item) => (
+              {OFFERS.map(item => (
                 <FeatureCard key={item.number} {...item} bg={softCardBg} border={border} heading={heading} body={body} accent={theme.primary} />
               ))}
             </View>
           </View>
 
           {/* ── Objetivo + Tecnologías ── */}
-          <View style={[s.split, isWide && s.splitWide]}>
+          <View ref={objectiveRef} style={[s.split, isWide && s.splitWide]}>
             <View style={s.splitCopy}>
               <Text style={[s.sectionTitle, { color: heading }]}>{t('objective.title')}</Text>
               <Text style={[s.sectionText,  { color: body    }]}>{t('objective.description')}</Text>
               <View style={s.checkList}>
-                {OBJECTIVE_KEYS.map((key) => (
+                {OBJECTIVE_KEYS.map(key => (
                   <View key={key} style={s.checkRow}>
                     <Ionicons name="checkmark-circle" size={16} color={theme.primary} />
                     <Text style={[s.checkItem, { color: heading }]}>{t(key)}</Text>
@@ -330,7 +365,7 @@ export default function LandingScreen() {
           </View>
 
           {/* ── Contacto ── */}
-          <View style={[s.contact, { backgroundColor: softCardBg, borderColor: border }]}>
+          <View ref={contactRef} style={[s.contact, { backgroundColor: softCardBg, borderColor: border }]}>
             <View style={s.contactCopy}>
               <Text style={[s.contactTitle, { color: heading }]}>{t('landing.contactTitle')}</Text>
               <Text style={[s.contactText,  { color: body    }]}>{t('landing.contactText')}</Text>
@@ -359,22 +394,38 @@ export default function LandingScreen() {
           </View>
 
         </ScrollView>
+
+        {/* ── Botón flotante — sube al inicio ── */}
+        {showScrollTop && (
+          <TouchableOpacity onPress={goToTop} activeOpacity={0.85} style={s.fabWrap}>
+            <LinearGradient
+              colors={['#72C96D', '#4FA14B']}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+              style={s.fab}
+            >
+              <Ionicons name="arrow-up" size={22} color="#FFFFFF" />
+            </LinearGradient>
+          </TouchableOpacity>
+        )}
+
       </SafeAreaView>
-    </LinearGradient>
+    </View>
   );
 }
 
 // ─── Styles ───────────────────────────────────
 const s = StyleSheet.create({
-  page:  { flex: 1 },
-  safe:  { flex: 1, backgroundColor: 'transparent' },
+  page:   { flex: 1 },
+  safe:   { flex: 1, backgroundColor: 'transparent' },
   scroll: { width: '100%', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 34 },
 
-  header:        { width: '100%', maxWidth: 1120, minHeight: 78, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 14, borderBottomWidth: 1, paddingVertical: 14, position: 'relative', zIndex: 999999 },
+  header:        { width: '100%', maxWidth: 1120, minHeight: 78, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 14, borderBottomWidth: 1, paddingVertical: 14, zIndex: 999 },
+  logoBtn:       { flexShrink: 0 },
   logo:          { width: 140, height: 48 },
-  nav:           { flexDirection: 'row', alignItems: 'center', gap: 24 },
+  nav:           { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  navBtn:        { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
   navText:       { fontSize: FontSize.base, fontWeight: FontWeight.bold },
-  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 10, position: 'relative', zIndex: 999999 },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
 
   hero:          { width: '100%', maxWidth: 1120, alignItems: 'center', gap: 34, paddingTop: 46, paddingBottom: 56 },
   heroWide:      { flexDirection: 'row', alignItems: 'center', gap: 52 },
@@ -394,18 +445,18 @@ const s = StyleSheet.create({
   secondaryBtn:     { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 10, borderWidth: 1.5, paddingHorizontal: 22, paddingVertical: 14, minWidth: 170, justifyContent: 'center' },
   secondaryBtnText: { fontSize: FontSize.base, fontWeight: FontWeight.black },
 
-  metrics:     { flexDirection: 'row', flexWrap: 'wrap', gap: 28, marginTop: 36 },
+  metrics: { flexDirection: 'row', flexWrap: 'wrap', gap: 28, marginTop: 36 },
 
-  heroVisual: { flex: 1, width: '100%', minHeight: 460, borderRadius: 16, borderWidth: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  mockPhone:  { width: 280, maxWidth: '100%', borderRadius: 36, borderWidth: 2, alignItems: 'center', padding: 20, paddingTop: 24, paddingBottom: 20 },
-  phoneBrand: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
-  phoneLogo:  { width: 120, height: 44 },
-  faceArea:   { width: 190, height: 190, borderRadius: 16, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', marginBottom: 16, position: 'relative' },
-  cornerTL:   { position: 'absolute', top: -2,    left: -2,  width: 22, height: 22, borderTopWidth: 3,    borderLeftWidth: 3,  borderRadius: 4 },
-  cornerTR:   { position: 'absolute', top: -2,    right: -2, width: 22, height: 22, borderTopWidth: 3,    borderRightWidth: 3, borderRadius: 4 },
-  cornerBL:   { position: 'absolute', bottom: -2, left: -2,  width: 22, height: 22, borderBottomWidth: 3, borderLeftWidth: 3,  borderRadius: 4 },
-  cornerBR:   { position: 'absolute', bottom: -2, right: -2, width: 22, height: 22, borderBottomWidth: 3, borderRightWidth: 3, borderRadius: 4 },
-  scanLine:   { position: 'absolute', height: 2, width: '80%', borderRadius: 1, opacity: 0.8 },
+  heroVisual:    { flex: 1, width: '100%', minHeight: 460, borderRadius: 16, borderWidth: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
+  mockPhone:     { width: 280, maxWidth: '100%', borderRadius: 36, borderWidth: 2, alignItems: 'center', padding: 20, paddingTop: 24, paddingBottom: 20 },
+  phoneBrand:    { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
+  phoneLogo:     { width: 120, height: 44 },
+  faceArea:      { width: 190, height: 190, borderRadius: 16, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', marginBottom: 16, position: 'relative' },
+  cornerTL:      { position: 'absolute', top: -2,    left: -2,  width: 22, height: 22, borderTopWidth: 3,    borderLeftWidth: 3,  borderRadius: 4 },
+  cornerTR:      { position: 'absolute', top: -2,    right: -2, width: 22, height: 22, borderTopWidth: 3,    borderRightWidth: 3, borderRadius: 4 },
+  cornerBL:      { position: 'absolute', bottom: -2, left: -2,  width: 22, height: 22, borderBottomWidth: 3, borderLeftWidth: 3,  borderRadius: 4 },
+  cornerBR:      { position: 'absolute', bottom: -2, right: -2, width: 22, height: 22, borderBottomWidth: 3, borderRightWidth: 3, borderRadius: 4 },
+  scanLine:      { position: 'absolute', height: 2, width: '80%', borderRadius: 1, opacity: 0.8 },
   phoneInfo:     { flexDirection: 'row', alignItems: 'flex-start', gap: 8, borderTopWidth: 1, paddingTop: 14, width: '100%' },
   phoneInfoText: { flex: 1, fontSize: FontSize.xs, lineHeight: 16, textAlign: 'center' },
 
@@ -422,12 +473,12 @@ const s = StyleSheet.create({
   checkRow:  { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   checkItem: { flex: 1, fontSize: FontSize.base, fontWeight: FontWeight.semibold, lineHeight: 22 },
 
-  techPanel:    { flex: 1, minHeight: 285, borderRadius: 12, borderWidth: 1, padding: 24 },
-  techTitle:    { fontSize: FontSize.xl, fontWeight: FontWeight.black, marginBottom: 8 },
-  techSubtitle: { fontSize: FontSize.md, lineHeight: 20, marginBottom: 18 },
-  techGrid:     { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  techBadge:    { flexDirection: 'row', alignItems: 'center', gap: 7, borderRadius: 8, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 10, width: '48%' },
-  techBadgeText:{ fontSize: FontSize.sm, fontWeight: FontWeight.bold },
+  techPanel:     { flex: 1, minHeight: 285, borderRadius: 12, borderWidth: 1, padding: 24 },
+  techTitle:     { fontSize: FontSize.xl, fontWeight: FontWeight.black, marginBottom: 8 },
+  techSubtitle:  { fontSize: FontSize.md, lineHeight: 20, marginBottom: 18 },
+  techGrid:      { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  techBadge:     { flexDirection: 'row', alignItems: 'center', gap: 7, borderRadius: 8, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 10, width: '48%' },
+  techBadgeText: { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
 
   innovationBanner:   { width: '100%', maxWidth: 1120, borderRadius: 12, borderWidth: 1, padding: 36, marginBottom: 12, alignItems: 'center' },
   innovationTitle:    { fontSize: FontSize['3xl'], fontWeight: FontWeight.black, textAlign: 'center', marginBottom: 12 },
@@ -448,4 +499,24 @@ const s = StyleSheet.create({
   footerText:  { fontSize: FontSize.md, fontWeight: FontWeight.bold },
   footerLinks: { flexDirection: 'row', gap: 16 },
   footerLink:  { fontSize: FontSize.md, fontWeight: FontWeight.extrabold },
+
+  // ── Botón flotante ──
+  fabWrap: {
+    position: 'absolute',
+    bottom: 32,
+    right: 32,
+    borderRadius: 28,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  fab: {
+    width: 52,
+    height: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

@@ -120,12 +120,16 @@ login: {
   noAccount:       '¿No tienes cuenta?',
   registerLink:    'Regístrate aquí',
   errors: {
-    missingAt:      'El correo no tiene @',
-    invalidDomain:  'Dominio de correo inválido',
-    emptyField:     'Este campo es obligatorio',
+    emailNotFound:  'Correo electrónico no registrado',
+    wrongPassword:  'Contraseña incorrecta',
+    emptyEmail:     'El correo es obligatorio',
+    emptyPassword:  'La contraseña es obligatoria',
     invalidEmail:   'Formato de correo inválido',
-    weakPassword:   'La contraseña es muy débil',
-    wrongCredentials: 'Correo o contraseña incorrectos',
+    noSpaces:       'No se permiten espacios',
+    invalidChars:   'Caracteres no permitidos',
+    passwordShort:  'Mínimo 6 caracteres',
+    passwordLong:   'Máximo 20 caracteres',
+
   },
 },
 //Privacy Notice

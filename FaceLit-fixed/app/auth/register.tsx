@@ -1,16 +1,19 @@
 // ─────────────────────────────────────────────
 //  app/auth/register.tsx  — layout ref: minor-consent.tsx
 // ─────────────────────────────────────────────
+import NavLink from '@/features/auth/components/NavLink';
+import { Routes } from '@/shared/constants/routes';
 import { useTheme } from '@/shared/contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Dimensions,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -20,8 +23,6 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Routes } from '@/shared/constants/routes';
-import NavLink from '@/features/auth/components/NavLink';
 
 // ── Constantes ────────────────────────────────
 const { width } = Dimensions.get('window');
@@ -72,7 +73,6 @@ function generatePassword(): string {
   return [...required, ...rest].sort(() => Math.random() - 0.5).join('');
 }
 
-// Valida campo en tiempo real → '' = sin dato, '✓' = ok, mensaje = error
 function liveValidate(key: string, value: string, t: (k: string) => string): string {
   switch (key) {
     case 'name':
@@ -97,13 +97,139 @@ function liveValidate(key: string, value: string, t: (k: string) => string): str
   }
 }
 
-// ── Componente ────────────────────────────────
+// ── Modal: Derechos ───────────────────────────
+function RightsModal({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+  const { t }             = useTranslation();
+  const { theme, isDark } = useTheme();
+
+  const RIGHTS = [
+    { icon: 'eye-outline'              as const, title: t('rights.items.access.title'),        desc: t('rights.items.access.desc') },
+    { icon: 'create-outline'           as const, title: t('rights.items.update.title'),        desc: t('rights.items.update.desc') },
+    { icon: 'shield-checkmark-outline' as const, title: t('rights.items.rectification.title'), desc: t('rights.items.rectification.desc') },
+    { icon: 'trash-outline'            as const, title: t('rights.items.deletion.title'),      desc: t('rights.items.deletion.desc') },
+    { icon: 'ban-outline'              as const, title: t('rights.items.revocation.title'),    desc: t('rights.items.revocation.desc') },
+  ];
+
+  const text        = isDark ? '#FFFFFF' : '#111111';
+  const muted       = isDark ? '#A8BCA6' : '#555555';
+  const cardBg      = isDark ? '#07120D' : '#FFFFFF';
+  const itemBg      = isDark ? 'rgba(255,255,255,0.04)' : '#F6FBF6';
+  const itemBorder  = isDark ? 'rgba(101,179,97,0.18)'  : 'rgba(101,179,97,0.20)';
+  const importantBg = isDark ? 'rgba(101,179,97,0.12)'  : 'rgba(101,179,97,0.10)';
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      statusBarTranslucent
+      onRequestClose={onClose}
+    >
+      <View style={rm.overlay}>
+        <View style={[rm.card, { backgroundColor: cardBg }]}>
+
+          {/* Cerrar */}
+          <TouchableOpacity
+            onPress={onClose}
+            style={[rm.closeBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }]}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="close" size={20} color={muted} />
+          </TouchableOpacity>
+
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {/* Ícono */}
+            <View style={rm.iconWrap}>
+              <LinearGradient colors={['#7DD87A', '#65B361', '#4A9146']} style={rm.iconCircle}>
+                <Ionicons name="shield-checkmark" size={30} color="#FFFFFF" />
+              </LinearGradient>
+            </View>
+
+            {/* Título */}
+            <Text style={[rm.title, { color: text }]}>
+              {t('rights.title1')}{'\n'}
+              <Text style={{ color: theme.primary }}>{t('rights.title2')}</Text>
+            </Text>
+
+            {/* Subtítulo */}
+            <Text style={[rm.subtitle, { color: muted }]}>
+              {t('rights.subtitle')}{' '}
+              <Text style={{ color: theme.primary, fontWeight: '700' }}>{t('rights.lawLabel')}</Text>
+            </Text>
+
+            {/* Separador */}
+            <View style={[rm.divider, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)' }]} />
+
+            {/* Lista de derechos */}
+            {RIGHTS.map((r, i) => (
+              <View key={i} style={[rm.rightItem, { backgroundColor: itemBg, borderColor: itemBorder }]}>
+                <View style={[rm.rightIconWrap, { backgroundColor: theme.primary + '20' }]}>
+                  <Ionicons name={r.icon} size={18} color={theme.primary} />
+                </View>
+                <View style={rm.rightContent}>
+                  <Text style={[rm.rightTitle, { color: theme.primary }]}>{r.title}</Text>
+                  <Text style={[rm.rightDesc,  { color: muted }]}>{r.desc}</Text>
+                </View>
+              </View>
+            ))}
+
+            {/* Caja importante */}
+            <View style={[rm.importantBox, { backgroundColor: importantBg, borderColor: theme.primary + '40' }]}>
+              <Ionicons name="information-circle-outline" size={18} color={theme.primary} style={{ marginBottom: 6 }} />
+              <Text style={[rm.importantText, { color: text }]}>
+                <Text style={[rm.importantBold, { color: theme.primary }]}>{t('rights.importantLabel')}</Text>
+                {t('rights.importantText')}
+              </Text>
+            </View>
+          </ScrollView>
+
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+const rm = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 32,
+  },
+  card: {
+    width: '100%', maxWidth: 480, borderRadius: 26,
+    paddingHorizontal: 24, paddingVertical: 28,
+    maxHeight: '90%',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3, shadowRadius: 20, elevation: 12,
+  },
+  closeBtn: {
+    alignSelf: 'flex-end', width: 34, height: 34,
+    borderRadius: 17, alignItems: 'center', justifyContent: 'center', marginBottom: 8,
+  },
+  iconWrap:   { alignItems: 'center', marginBottom: 16 },
+  iconCircle: { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', shadowColor: '#65B361', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8, elevation: 6 },
+  title:    { fontSize: 22, fontWeight: '900', textAlign: 'center', lineHeight: 30, marginBottom: 8 },
+  subtitle: { fontSize: 13, textAlign: 'center', lineHeight: 20, marginBottom: 20 },
+  divider:  { height: 1, marginBottom: 20 },
+  rightItem:     { flexDirection: 'row', alignItems: 'flex-start', gap: 12, borderRadius: 12, borderWidth: 1, padding: 14, marginBottom: 10 },
+  rightIconWrap: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  rightContent:  { flex: 1 },
+  rightTitle:    { fontSize: 14, fontWeight: '700', marginBottom: 4 },
+  rightDesc:     { fontSize: 13, lineHeight: 19 },
+  importantBox:  { borderRadius: 12, borderWidth: 1, padding: 14, marginTop: 10, marginBottom: 8, alignItems: 'center' },
+  importantText: { fontSize: 13, lineHeight: 20, textAlign: 'center' },
+  importantBold: { fontWeight: '800' },
+});
+
+// ── Componente principal ──────────────────────
 export default function RegisterScreen() {
   const { t }             = useTranslation();
   const { theme, isDark } = useTheme();
   const { validatedEmail } = useLocalSearchParams<{ validatedEmail?: string }>();
 
-  // ── Paleta local (igual que minor-consent) ──
   const text         = isDark ? '#FFFFFF'                : '#111111';
   const muted        = isDark ? '#A8BCA6'                : '#555555';
   const cardBg       = isDark ? '#07120D'                : '#FFFFFF';
@@ -119,13 +245,11 @@ export default function RegisterScreen() {
 
   const isWide = width >= 768;
 
-  // Opciones de identidad
   const identityOptions = IDENTITY_VALUES.map(value => ({
     value,
     label: t(`register.identity${value}`),
   }));
 
-  // ── Estado ────────────────────────────────────
   const [form, setForm]                     = useState({ ...initialForm, email: validatedEmail ?? '' });
   const [birthdate, setBirthdate]           = useState<Date | null>(null);
   const [showPicker, setShowPicker]         = useState(false);
@@ -138,8 +262,8 @@ export default function RegisterScreen() {
   const [showPassword, setShowPassword]     = useState(false);
   const [passwordCopied, setPasswordCopied] = useState(false);
   const [focused, setFocused]               = useState<string | null>(null);
+  const [showRights, setShowRights]         = useState(false); // ← nuevo
 
-  // ── Handlers ──────────────────────────────────
   const clearError = (k: string) => setErrors(p => ({ ...p, [k]: '' }));
 
   const setField = (key: string, value: string) => {
@@ -221,10 +345,10 @@ export default function RegisterScreen() {
       e.birthdate = t('register.errors.birthdateRequired');
     } else {
       const age = getAge(birthdate);
-      if (age < 8)                                    e.birthdate     = t('register.errors.ageMin');
-      else if (age > 100)                             e.birthdate     = t('register.errors.ageMax');
-      else if (d.identityType === 'TI' && age >= 18) e.identityType  = t('register.errors.tiAdult');
-      else if (d.identityType === 'CC' && age < 18)  e.identityType  = t('register.errors.ccMinor');
+      if (age < 8)                                    e.birthdate    = t('register.errors.ageMin');
+      else if (age > 100)                             e.birthdate    = t('register.errors.ageMax');
+      else if (d.identityType === 'TI' && age >= 18) e.identityType = t('register.errors.tiAdult');
+      else if (d.identityType === 'CC' && age < 18)  e.identityType = t('register.errors.ccMinor');
     }
 
     if (!accepted)          e.policy = t('register.errors.policyRequired');
@@ -247,13 +371,9 @@ export default function RegisterScreen() {
     router.replace(Routes.AUTH.LOGIN as any);
   };
 
-  // ── Color de hint inline ──────────────────────
   const hintColor = (key: string) => hints[key] === '✓' ? theme.primary : errorColor;
 
-  // ═══════════════════════════════════════════════
-  //  Bloques JSX reutilizables (igual que minor-consent)
-  // ═══════════════════════════════════════════════
-
+  // ── Bloques JSX ──────────────────────────────
   const fieldName = (
     <View style={s.fieldGroup}>
       <Text style={[s.label, { color: text }]}>{t('register.name')}</Text>
@@ -274,10 +394,8 @@ export default function RegisterScreen() {
           onBlur={() => setFocused(null)}
         />
       </View>
-      {errors.name
-        ? <Text style={s.errorText}>{errors.name}</Text>
-        : hints.name
-        ? <Text style={[s.hintText, { color: hintColor('name') }]}>{hints.name}</Text>
+      {errors.name ? <Text style={s.errorText}>{errors.name}</Text>
+        : hints.name ? <Text style={[s.hintText, { color: hintColor('name') }]}>{hints.name}</Text>
         : null}
     </View>
   );
@@ -302,10 +420,8 @@ export default function RegisterScreen() {
           onBlur={() => setFocused(null)}
         />
       </View>
-      {errors.lastname
-        ? <Text style={s.errorText}>{errors.lastname}</Text>
-        : hints.lastname
-        ? <Text style={[s.hintText, { color: hintColor('lastname') }]}>{hints.lastname}</Text>
+      {errors.lastname ? <Text style={s.errorText}>{errors.lastname}</Text>
+        : hints.lastname ? <Text style={[s.hintText, { color: hintColor('lastname') }]}>{hints.lastname}</Text>
         : null}
     </View>
   );
@@ -334,16 +450,9 @@ export default function RegisterScreen() {
             <TouchableOpacity
               key={opt.value}
               onPress={() => handleIdentity(opt.value)}
-              style={[
-                s.dropOption,
-                { borderBottomColor: inputBorder },
-                form.identityType === opt.value && { backgroundColor: theme.primary + '22' },
-              ]}
+              style={[s.dropOption, { borderBottomColor: inputBorder }, form.identityType === opt.value && { backgroundColor: theme.primary + '22' }]}
             >
-              <Text style={[
-                s.dropText, { color: text },
-                form.identityType === opt.value && { color: theme.primary, fontWeight: '700' },
-              ]}>
+              <Text style={[s.dropText, { color: text }, form.identityType === opt.value && { color: theme.primary, fontWeight: '700' }]}>
                 {opt.label}
               </Text>
             </TouchableOpacity>
@@ -351,8 +460,6 @@ export default function RegisterScreen() {
         </View>
       )}
       {errors.identityType ? <Text style={s.errorText}>{errors.identityType}</Text> : null}
-
-      {/* Avisos TI / CC */}
       {form.identityType === 'TI' && (
         <View style={[s.infoBox, { backgroundColor: isDark ? 'rgba(255,165,0,0.10)' : '#FFF8E7', borderColor: '#FAA61A' }]}>
           <Ionicons name="information-circle-outline" size={14} color="#FAA61A" />
@@ -390,10 +497,8 @@ export default function RegisterScreen() {
           {form.document.length}/10
         </Text>
       </View>
-      {errors.document
-        ? <Text style={s.errorText}>{errors.document}</Text>
-        : hints.document
-        ? <Text style={[s.hintText, { color: hintColor('document') }]}>{hints.document}</Text>
+      {errors.document ? <Text style={s.errorText}>{errors.document}</Text>
+        : hints.document ? <Text style={[s.hintText, { color: hintColor('document') }]}>{hints.document}</Text>
         : null}
     </View>
   );
@@ -420,10 +525,8 @@ export default function RegisterScreen() {
         />
         {emailValidated && <Ionicons name="checkmark-circle" size={18} color={theme.primary} />}
       </View>
-      {errors.email
-        ? <Text style={s.errorText}>{errors.email}</Text>
-        : hints.email
-        ? <Text style={[s.hintText, { color: hintColor('email') }]}>{hints.email}</Text>
+      {errors.email ? <Text style={s.errorText}>{errors.email}</Text>
+        : hints.email ? <Text style={[s.hintText, { color: hintColor('email') }]}>{hints.email}</Text>
         : null}
     </View>
   );
@@ -443,9 +546,7 @@ export default function RegisterScreen() {
           size={16}
           color={emailValidated ? theme.primary : errors.emailAction ? errorColor : muted}
         />
-        <Text style={[s.validateBtnText, {
-          color: emailValidated ? theme.primary : errors.emailAction ? errorColor : muted,
-        }]}>
+        <Text style={[s.validateBtnText, { color: emailValidated ? theme.primary : errors.emailAction ? errorColor : muted }]}>
           {emailValidated ? t('register.emailValidated') : t('register.validateEmail')}
         </Text>
       </TouchableOpacity>
@@ -475,8 +576,6 @@ export default function RegisterScreen() {
           </TouchableOpacity>
         )}
       </View>
-
-      {/* Botón generar */}
       <TouchableOpacity
         onPress={handleGeneratePassword}
         style={[s.generateBtn, { borderColor: theme.primary, backgroundColor: theme.primary + '12' }]}
@@ -490,7 +589,6 @@ export default function RegisterScreen() {
         </Text>
         {passwordCopied && <Ionicons name="checkmark-circle" size={16} color={theme.primary} />}
       </TouchableOpacity>
-
       <View style={[s.hintBox, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#F5F5F5' }]}>
         <Text style={[s.hintBoxText, { color: muted }]}>{t('register.passwordHint')}</Text>
       </View>
@@ -551,69 +649,44 @@ export default function RegisterScreen() {
 
       <SafeAreaView style={s.safe}>
         <KeyboardAvoidingView style={s.kav} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-          <ScrollView
-            contentContainerStyle={s.scroll}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
+          <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
             <View style={[s.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
 
-              {/* Título */}
               <Text style={[s.title, { color: text }]}>{t('register.title')}</Text>
               <Text style={[s.subtitle, { color: muted }]}>{t('register.subtitle')}</Text>
 
-              {/* ══ SECCIÓN: Datos personales ══ */}
+              {/* ══ Datos personales ══ */}
               <View style={[s.sectionHeader, { borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)' }]}>
                 <Ionicons name="person-outline" size={13} color={theme.primary} />
                 <Text style={[s.sectionTitle, { color: theme.primary }]}>{t('register.sections.personal')}</Text>
               </View>
-
               {isWide ? (
                 <>
-                  {/* Fila 1: Nombre | Apellido */}
-                  <View style={s.row}>
-                    <View style={s.col}>{fieldName}</View>
-                    <View style={s.col}>{fieldLastname}</View>
-                  </View>
-                  {/* Fila 2: Tipo identidad | Documento */}
-                  <View style={s.row}>
-                    <View style={s.col}>{fieldIdentity}</View>
-                    <View style={s.col}>{fieldDocument}</View>
-                  </View>
+                  <View style={s.row}><View style={s.col}>{fieldName}</View><View style={s.col}>{fieldLastname}</View></View>
+                  <View style={s.row}><View style={s.col}>{fieldIdentity}</View><View style={s.col}>{fieldDocument}</View></View>
                 </>
               ) : (
-                <>
-                  {fieldName}
-                  {fieldLastname}
-                  {fieldIdentity}
-                  {fieldDocument}
-                </>
+                <>{fieldName}{fieldLastname}{fieldIdentity}{fieldDocument}</>
               )}
 
-              {/* ══ SECCIÓN: Contacto ══ */}
+              {/* ══ Contacto ══ */}
               <View style={[s.sectionHeader, { borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)' }]}>
                 <Ionicons name="mail-outline" size={13} color={theme.primary} />
                 <Text style={[s.sectionTitle, { color: theme.primary }]}>{t('register.sections.contact')}</Text>
               </View>
-
               {fieldEmail}
               {validateEmailBtn}
 
-              {/* ══ SECCIÓN: Seguridad ══ */}
+              {/* ══ Seguridad ══ */}
               <View style={[s.sectionHeader, { borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)' }]}>
                 <Ionicons name="lock-closed-outline" size={13} color={theme.primary} />
                 <Text style={[s.sectionTitle, { color: theme.primary }]}>{t('register.sections.security')}</Text>
               </View>
-
               {isWide ? (
-                <View style={s.row}>
-                  <View style={s.col}>{fieldPassword}</View>
-                  <View style={s.col}>{fieldBirthdate}</View>
-                </View>
+                <View style={s.row}><View style={s.col}>{fieldPassword}</View><View style={s.col}>{fieldBirthdate}</View></View>
               ) : (
                 <>
                   {fieldPassword}
-                  {/* ══ SECCIÓN: Otros datos ══ */}
                   <View style={[s.sectionHeader, { borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)' }]}>
                     <Ionicons name="calendar-outline" size={13} color={theme.primary} />
                     <Text style={[s.sectionTitle, { color: theme.primary }]}>{t('register.sections.other')}</Text>
@@ -627,14 +700,11 @@ export default function RegisterScreen() {
                   value={birthdate || new Date(2000, 0, 1)}
                   mode="date"
                   maximumDate={new Date()}
-                  onChange={(_, date) => {
-                    setShowPicker(false);
-                    if (date) setBirthdate(date);
-                  }}
+                  onChange={(_, date) => { setShowPicker(false); if (date) setBirthdate(date); }}
                 />
               )}
 
-              {/* ══ SECCIÓN: Aceptaciones ══ */}
+              {/* ══ Aceptaciones ══ */}
               <View style={[s.sectionHeader, { borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)' }]}>
                 <Ionicons name="checkmark-done-outline" size={13} color={theme.primary} />
                 <Text style={[s.sectionTitle, { color: theme.primary }]}>{t('register.sections.acceptances')}</Text>
@@ -672,9 +742,7 @@ export default function RegisterScreen() {
                     }]}
                   >
                     <Ionicons name="checkmark-outline" size={14} color={hasRights === true ? '#FFFFFF' : muted} />
-                    <Text style={[s.rightsBtnText, { color: hasRights === true ? '#FFFFFF' : muted }]}>
-                      {t('register.rightsYes')}
-                    </Text>
+                    <Text style={[s.rightsBtnText, { color: hasRights === true ? '#FFFFFF' : muted }]}>{t('register.rightsYes')}</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -685,12 +753,11 @@ export default function RegisterScreen() {
                     }]}
                   >
                     <Ionicons name="close-outline" size={14} color={hasRights === false ? '#FFFFFF' : muted} />
-                    <Text style={[s.rightsBtnText, { color: hasRights === false ? '#FFFFFF' : muted }]}>
-                      {t('register.rightsNo')}
-                    </Text>
+                    <Text style={[s.rightsBtnText, { color: hasRights === false ? '#FFFFFF' : muted }]}>{t('register.rightsNo')}</Text>
                   </TouchableOpacity>
 
-                  <TouchableOpacity onPress={() => router.push(Routes.AUTH.RIGHTS as any)} style={s.rightsReadLink}>
+                  {/* ← Ahora abre modal en vez de navegar */}
+                  <TouchableOpacity onPress={() => setShowRights(true)} style={s.rightsReadLink}>
                     <Text style={[s.rightsReadText, { color: linkColor }]}>{t('register.rightsRead')}</Text>
                   </TouchableOpacity>
                 </View>
@@ -701,9 +768,7 @@ export default function RegisterScreen() {
               <View style={isWide ? s.actionsRow : s.actionsCol}>
                 <TouchableOpacity
                   onPress={handleCancel}
-                  style={[s.backBtn, isWide && s.actionBtnWide, {
-                    borderColor: isDark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.12)',
-                  }]}
+                  style={[s.backBtn, isWide && s.actionBtnWide, { borderColor: isDark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.12)' }]}
                   activeOpacity={0.8}
                 >
                   <Ionicons name="close-outline" size={16} color={muted} />
@@ -731,6 +796,9 @@ export default function RegisterScreen() {
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
+
+      {/* Modal de derechos */}
+      <RightsModal visible={showRights} onClose={() => setShowRights(false)} />
     </LinearGradient>
   );
 }
@@ -745,26 +813,13 @@ const s = StyleSheet.create({
   arcTop:    { position: 'absolute', width: 300, height: 420, right: -120, top: -90,    borderRadius: 200, backgroundColor: 'rgba(20,70,28,0.18)' },
   arcBottom: { position: 'absolute', width: 420, height: 220, left: -120,  bottom: -30, borderRadius: 180, backgroundColor: 'rgba(101,179,97,0.28)' },
   scroll:    { flexGrow: 1, alignItems: 'center', paddingVertical: 28, paddingHorizontal: 16 },
-
-  card: {
-    width: '100%',
-    maxWidth: CARD_MAX,
-    borderRadius: 26,
-    borderWidth: 1,
-    paddingHorizontal: isWide ? 40 : 24,
-    paddingVertical: 30,
-  },
-
+  card:      { width: '100%', maxWidth: CARD_MAX, borderRadius: 26, borderWidth: 1, paddingHorizontal: isWide ? 40 : 24, paddingVertical: 30 },
   title:    { fontSize: 26, fontWeight: '900', textAlign: 'center', marginBottom: 4 },
   subtitle: { fontSize: 13, textAlign: 'center', lineHeight: 20, marginBottom: 8 },
-
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 20, marginBottom: 12, paddingBottom: 8, borderBottomWidth: 1 },
   sectionTitle:  { fontSize: 11, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase' },
-
-  // Grid
   row: { flexDirection: 'row', gap: 16 },
   col: { flex: 1 },
-
   fieldGroup: { marginBottom: 12 },
   label:      { fontSize: 13, fontWeight: '700', marginBottom: 6 },
   inputWrap:  { height: 48, borderWidth: 1.2, borderRadius: 12, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
@@ -773,28 +828,21 @@ const s = StyleSheet.create({
   hintText:   { fontSize: 11, marginTop: 3, fontWeight: '600' },
   docCounter: { fontSize: 12, fontWeight: '700', minWidth: 32, textAlign: 'right' },
   eyeBtn:     { padding: 4 },
-
-  infoBox:  { flexDirection: 'row', alignItems: 'center', gap: 6, padding: 10, borderRadius: 8, borderWidth: 1, marginTop: 8 },
-  infoText: { fontSize: 12, flex: 1, lineHeight: 17 },
-
+  infoBox:    { flexDirection: 'row', alignItems: 'center', gap: 6, padding: 10, borderRadius: 8, borderWidth: 1, marginTop: 8 },
+  infoText:   { fontSize: 12, flex: 1, lineHeight: 17 },
   dropdown:   { marginTop: 4, borderRadius: 10, borderWidth: 1, overflow: 'hidden' },
   dropOption: { paddingVertical: 13, paddingHorizontal: 16, borderBottomWidth: 1 },
   dropText:   { fontSize: 15 },
-
   validateBtn:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 44, borderRadius: 10, borderWidth: 1.2, marginBottom: 4, paddingHorizontal: 12 },
   validateBtnText: { fontSize: 13, fontWeight: '700', textAlign: 'center' },
-
   generateBtn:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 44, borderRadius: 10, borderWidth: 1.2, marginTop: 8, marginBottom: 4, paddingHorizontal: 12 },
   generateBtnText: { fontSize: 13, fontWeight: '700' },
-
   hintBox:     { borderRadius: 8, padding: 10, marginTop: 4, marginBottom: 2 },
   hintBoxText: { fontSize: 11, lineHeight: 16, textAlign: 'center' },
-
   consentCard:   { borderRadius: 14, borderWidth: 1, padding: 16, marginTop: 6, marginBottom: 4 },
   checkRow:      { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   checkbox:      { width: 20, height: 20, borderWidth: 1.5, borderRadius: 4, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 },
   checkLabel:    { flex: 1, fontSize: 13, lineHeight: 20 },
-
   rightsHeader:  { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 14 },
   rightsQ:       { fontSize: 13, fontWeight: '600', flex: 1, lineHeight: 20 },
   rightsButtons: { flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap' },
@@ -802,17 +850,14 @@ const s = StyleSheet.create({
   rightsBtnText: { fontSize: 13, fontWeight: '700' },
   rightsReadLink:{ marginLeft: 'auto' as any },
   rightsReadText:{ fontSize: 12, fontWeight: '600' },
-
   actionsRow:    { flexDirection: 'row', gap: 16, marginTop: 24, marginBottom: 8 },
   actionsCol:    { flexDirection: 'column', alignItems: 'center', marginTop: 24, marginBottom: 8 },
   actionBtnWide: { flex: 1, maxWidth: undefined, alignSelf: undefined, width: undefined },
-
   confirmBtn:         { width: '100%', maxWidth: 300, alignSelf: 'center', borderRadius: 16, overflow: 'hidden', marginBottom: 10 },
   confirmBtnGradient: { paddingVertical: 14, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 },
   confirmBtnText:     { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
   backBtn:            { width: '100%', maxWidth: 300, alignSelf: 'center', borderRadius: 16, borderWidth: 1.2, paddingVertical: 12, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6, marginBottom: 8 },
   backBtnText:        { fontSize: 15, fontWeight: '600' },
-
   footer:     { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', marginTop: 4 },
   footerText: { fontSize: 13 },
 });

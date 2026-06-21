@@ -1,17 +1,16 @@
 // ─────────────────────────────────────────────
 //  app/auth/email-validation.tsx
 // ─────────────────────────────────────────────
-import { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, useLocalSearchParams } from 'expo-router';
-import { useTranslation } from 'react-i18next';
 import GradientBackground from '@/shared/components/layout/GradientBackground';
 import { AppButton, InputField } from '@/shared/components/ui';
-import { useTheme } from '@/shared/contexts/ThemeContext';
 import { Colors } from '@/shared/constants/colors';
 import { FontSize, FontWeight } from '@/shared/constants/typography';
+import { useTheme } from '@/shared/contexts/ThemeContext';
+import { Ionicons } from '@expo/vector-icons';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 // ─── Constants ────────────────────────────────
 const CODE_MOCK    = '123456';
@@ -79,8 +78,8 @@ const badge = StyleSheet.create({
 
 // ─── Sub-component: Demo box ──────────────────
 function DemoBox() {
-  const { t }       = useTranslation();
-  const { theme }   = useTheme();
+  const { t }     = useTranslation();
+  const { theme } = useTheme();
 
   return (
     <View style={[demo.wrap, { backgroundColor: theme.border }]}>
@@ -100,11 +99,101 @@ const demo = StyleSheet.create({
   text: { fontSize: FontSize.sm },
 });
 
+// ─── Sub-component: Modal de éxito ────────────
+function SuccessModal({ visible, email, onContinue }: {
+  visible: boolean;
+  email: string;
+  onContinue: () => void;
+}) {
+  const { t }     = useTranslation();
+  const { theme } = useTheme();
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      statusBarTranslucent
+    >
+      {/* Fondo semitransparente */}
+      <View style={m.overlay}>
+        <View style={[m.card, { backgroundColor: theme.card }]}>
+
+          {/* Ícono */}
+          <View style={[m.iconCircle, { borderColor: theme.primary }]}>
+            <Ionicons name="checkmark-circle" size={72} color={theme.primary} />
+          </View>
+
+          {/* Título */}
+          <Text style={[m.title, { color: theme.text }]}>
+            {t('emailValidatedSuccess.title')}
+          </Text>
+
+          {/* Email badge */}
+          <View style={[m.emailBadge, { backgroundColor: theme.primaryFaint, borderColor: theme.primary }]}>
+            <Ionicons name="mail-open-outline" size={16} color={theme.primary} />
+            <Text style={[m.emailText, { color: theme.primary }]}>
+              {email || 'correo@ejemplo.com'}
+            </Text>
+          </View>
+
+          {/* Subtítulo */}
+          <Text style={[m.subtitle, { color: theme.textMuted }]}>
+            {t('emailValidatedSuccess.subtitle')}
+          </Text>
+
+          {/* Divider */}
+          <View style={[m.divider, { backgroundColor: theme.border }]} />
+
+          {/* Botón */}
+          <AppButton
+            title={t('emailValidatedSuccess.btn')}
+            onPress={onContinue}
+            fullWidth={false}
+            style={m.btn}
+          />
+
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+const m = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  card: {
+    width: '100%', maxWidth: 420, borderRadius: 26,
+    paddingHorizontal: 32, paddingVertical: 40,
+    alignItems: 'center',
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3, shadowRadius: 24, elevation: 12,
+  },
+  iconCircle: {
+    width: 120, height: 120, borderRadius: 60, borderWidth: 3,
+    alignItems: 'center', justifyContent: 'center', marginBottom: 24,
+  },
+  title:      { fontSize: FontSize['2xl'], fontWeight: FontWeight.black, textAlign: 'center', marginBottom: 16, lineHeight: 32 },
+  emailBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10, marginBottom: 16 },
+  emailText:  { fontSize: FontSize.base, fontWeight: FontWeight.bold },
+  subtitle:   { fontSize: FontSize.base, textAlign: 'center', lineHeight: 22, marginBottom: 24 },
+  divider:    { width: '80%', height: 1, marginBottom: 24 },
+  btn:        { width: '70%', borderRadius: 14 },
+});
+
 // ─── Screen ───────────────────────────────────
 export default function EmailValidationScreen() {
   const { t }     = useTranslation();
   const { theme } = useTheme();
   const { email } = useLocalSearchParams<{ email: string }>();
+
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const {
     code, setCode, timeLeft, expired,
@@ -114,7 +203,12 @@ export default function EmailValidationScreen() {
   const handleVerify = () => {
     if (!validate()) return;
     setError('');
-    router.push({ pathname: '/auth/email-validated-success' as any, params: { email } });
+    setShowSuccess(true); // ← abre el modal en vez de navegar
+  };
+
+  const handleContinue = () => {
+    setShowSuccess(false);
+    router.push({ pathname: '/auth/register' as any, params: { validatedEmail: email } });
   };
 
   return (
@@ -162,7 +256,7 @@ export default function EmailValidationScreen() {
             </Text>
           </TouchableOpacity>
 
-          {/* Input código — usa InputField existente */}
+          {/* Input código */}
           <InputField
             label={t('emailValidation.inputLabel')}
             value={code}
@@ -178,7 +272,7 @@ export default function EmailValidationScreen() {
             {t('emailValidation.hint')}
           </Text>
 
-          {/* Botón verificar — usa AppButton existente */}
+          {/* Botón verificar */}
           <AppButton
             title={t('emailValidation.verifyBtn')}
             onPress={handleVerify}
@@ -190,6 +284,13 @@ export default function EmailValidationScreen() {
 
         </View>
       </ScrollView>
+
+      {/* Modal de éxito — aparece encima de todo al verificar */}
+      <SuccessModal
+        visible={showSuccess}
+        email={email}
+        onContinue={handleContinue}
+      />
     </GradientBackground>
   );
 }
@@ -202,24 +303,20 @@ const s = StyleSheet.create({
     paddingVertical: 32, paddingHorizontal: 20,
   },
   card: {
-    width: '100%', maxWidth: 460, borderRadius: 26,
+    width: '100%', maxWidth: 900, borderRadius: 26,
     paddingHorizontal: 24, paddingVertical: 28,
     shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.18, shadowRadius: 18, elevation: 8,
   },
-  backBtn:   { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 20 },
-  backText:  { fontSize: FontSize.base, fontWeight: FontWeight.bold },
-  clockCircle: {
-    width: 110, height: 110, borderRadius: 55, borderWidth: 4,
-    alignItems: 'center', justifyContent: 'center',
-    alignSelf: 'center', marginBottom: 20,
-  },
-  title:         { fontSize: FontSize['3xl'], fontWeight: FontWeight.black, textAlign: 'center', marginBottom: 8 },
-  subtitle:      { fontSize: FontSize.base, textAlign: 'center', lineHeight: 20 },
-  emailText:     { fontSize: FontSize.base, textAlign: 'center', fontWeight: FontWeight.bold, textDecorationLine: 'underline', marginBottom: 20, marginTop: 4 },
-  resendBtn:     { alignSelf: 'center', marginBottom: 26 },
-  resendText:    { fontWeight: FontWeight.bold, textDecorationLine: 'underline', fontSize: FontSize.base },
+  backBtn:     { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 20 },
+  backText:    { fontSize: FontSize.base, fontWeight: FontWeight.bold },
+  clockCircle: { width: 110, height: 110, borderRadius: 55, borderWidth: 4, alignItems: 'center', justifyContent: 'center', alignSelf: 'center', marginBottom: 20 },
+  title:       { fontSize: FontSize['3xl'], fontWeight: FontWeight.black, textAlign: 'center', marginBottom: 8 },
+  subtitle:    { fontSize: FontSize.base, textAlign: 'center', lineHeight: 20 },
+  emailText:   { fontSize: FontSize.base, textAlign: 'center', fontWeight: FontWeight.bold, textDecorationLine: 'underline', marginBottom: 20, marginTop: 4 },
+  resendBtn:   { alignSelf: 'center', marginBottom: 26 },
+  resendText:  { fontWeight: FontWeight.bold, textDecorationLine: 'underline', fontSize: FontSize.base },
   codeInputText: { textAlign: 'center', fontSize: 24, letterSpacing: 10 },
-  hint:          { fontSize: FontSize.sm, marginTop: 8, marginBottom: 22 },
+  hint:        { fontSize: FontSize.sm, marginTop: 8, marginBottom: 22 },
 });

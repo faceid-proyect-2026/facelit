@@ -3,13 +3,13 @@
 //  Fix: agrega I18nextProvider para que
 //  useTranslation() detecte cambios de idioma
 // ─────────────────────────────────────────────
+import { I18nProvider } from '@/shared/contexts/I18nContext';
+import { ThemeProvider, useTheme } from '@/shared/contexts/ThemeContext';
+import i18n from '@/shared/i18n/index';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { View, StyleSheet } from 'react-native';
 import { I18nextProvider } from 'react-i18next';
-import { ThemeProvider, useTheme } from '@/shared/contexts/ThemeContext';
-import { I18nProvider } from '@/shared/contexts/I18nContext';
-import i18n from '@/shared/i18n/index';
+import { StyleSheet, View } from 'react-native';
 
 function RootLayoutInner() {
   const { theme } = useTheme();
@@ -28,7 +28,6 @@ function RootLayoutInner() {
         <Stack.Screen name="auth/login" />
         <Stack.Screen name="auth/register" />
         <Stack.Screen name="auth/email-validation" />
-        <Stack.Screen name="auth/email-validated-success" />
         <Stack.Screen name="auth/password-recovery" />
         <Stack.Screen name="auth/verify-identity" />
         <Stack.Screen name="auth/new-password" />
@@ -36,7 +35,6 @@ function RootLayoutInner() {
         <Stack.Screen name="auth/registration-success" />
         <Stack.Screen name="auth/teenager-registration" />
         <Stack.Screen name="auth/minor-consent" />
-        <Stack.Screen name="auth/rights" />
         <Stack.Screen name="auth/privacy-notice" />
         <Stack.Screen name="admin" options={{ animation: 'fade' }} />
       </Stack>

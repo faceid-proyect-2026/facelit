@@ -28,14 +28,12 @@ function RootLayoutInner() {
         <Stack.Screen name="auth/login" />
         <Stack.Screen name="auth/register" />
         <Stack.Screen name="auth/email-validation" />
-        <Stack.Screen name="auth/email-validated-success" />
         <Stack.Screen name="auth/password-recovery" />
         <Stack.Screen name="auth/verify-identity" />
         <Stack.Screen name="auth/new-password" />
         <Stack.Screen name="auth/password-reset-done" />
         <Stack.Screen name="auth/teenager-registration" />
         <Stack.Screen name="auth/minor-consent" />
-        <Stack.Screen name="auth/rights" />
         <Stack.Screen name="auth/privacy-notice" />
         <Stack.Screen name="admin" options={{ animation: 'fade' }} />
       </Stack>

@@ -41,7 +41,7 @@ const initialForm = {
 
 const initialErrors: Record<string, string> = {
   name: '', lastname: '', identityType: '', document: '',
-  email: '', emailAction: '', password: '',
+  email: '', emailAction: '', password: '', confirmPassword: '',
   birthdate: '', policy: '', rights: '',
 };
 
@@ -59,18 +59,6 @@ function formatDate(date: Date): string {
   const m = String(date.getMonth() + 1).padStart(2, '0');
   const d = String(date.getDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;
-}
-
-function generatePassword(): string {
-  const upper   = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  const lower   = 'abcdefghijklmnopqrstuvwxyz';
-  const digits  = '0123456789';
-  const symbols = '!@#$%^&*()-_=+[];:\'",.<>?';
-  const all     = upper + lower + digits + symbols;
-  const rand    = (pool: string) => pool[Math.floor(Math.random() * pool.length)];
-  const required = [rand(upper), rand(digits), rand(symbols)];
-  const rest     = Array.from({ length: 9 }, () => rand(all));
-  return [...required, ...rest].sort(() => Math.random() - 0.5).join('');
 }
 
 function liveValidate(key: string, value: string, t: (k: string) => string): string {
@@ -259,10 +247,13 @@ export default function RegisterScreen() {
   const [showIdentity, setShowIdentity]     = useState(false);
   const [errors, setErrors]                 = useState(initialErrors);
   const [hints, setHints]                   = useState<Record<string, string>>({});
-  const [showPassword, setShowPassword]     = useState(false);
-  const [passwordCopied, setPasswordCopied] = useState(false);
+  const [showPassword, setShowPassword]         = useState(false);
+  // ── NUEVO: estado para confirmar contraseña ──
+  const [confirmPassword, setConfirmPassword]       = useState('');
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  // ────────────────────────────────────────────
   const [focused, setFocused]               = useState<string | null>(null);
-  const [showRights, setShowRights]         = useState(false); // ← nuevo
+  const [showRights, setShowRights]         = useState(false);
 
   const clearError = (k: string) => setErrors(p => ({ ...p, [k]: '' }));
 
@@ -285,21 +276,6 @@ export default function RegisterScreen() {
     setForm(p => ({ ...p, identityType: value }));
     setShowIdentity(false);
     clearError('identityType');
-  };
-
-  const handleGeneratePassword = () => {
-    const pwd = generatePassword();
-    setForm(p => ({ ...p, password: pwd }));
-    setShowPassword(true);
-    setPasswordCopied(false);
-    clearError('password');
-    setHints(p => ({ ...p, password: '✓' }));
-    if (Platform.OS === 'web') {
-      navigator.clipboard?.writeText(pwd).then(() => setPasswordCopied(true));
-    } else {
-      setPasswordCopied(true);
-    }
-    setTimeout(() => setPasswordCopied(false), 3000);
   };
 
   const handleEmailValidate = () => {
@@ -340,6 +316,14 @@ export default function RegisterScreen() {
 
     if (!d.password)                           e.password = t('register.errors.passwordRequired');
     else if (!PASSWORD_REGEX.test(d.password)) e.password = t('register.errors.passwordWeak');
+
+    // ── NUEVO: validación confirmar contraseña ──
+    if (!confirmPassword) {
+      e.confirmPassword = t('register.errors.confirmPasswordRequired') ?? 'Confirma tu contraseña';
+    } else if (confirmPassword !== d.password) {
+      e.confirmPassword = t('register.errors.passwordMismatch') ?? 'Las contraseñas no coinciden';
+    }
+    // ───────────────────────────────────────────
 
     if (!birthdate) {
       e.birthdate = t('register.errors.birthdateRequired');
@@ -554,47 +538,78 @@ export default function RegisterScreen() {
     </>
   );
 
+  // ── CAMPO CONTRASEÑA (manual + ojo) ──────────
   const fieldPassword = (
     <View style={s.fieldGroup}>
       <Text style={[s.label, { color: text }]}>{t('register.password')}</Text>
       <View style={[s.inputWrap, {
         backgroundColor: inputBg,
-        borderColor: errors.password ? errorColor : form.password ? theme.primary : inputBorder,
+        borderColor: errors.password ? errorColor : focused === 'password' ? activeBorder : inputBorder,
       }]}>
         <Ionicons name="lock-closed-outline" size={18} color={muted} />
-        <Text style={[s.input, {
-          color: form.password ? text : (isDark ? '#5A7258' : '#AAAAAA'),
-          letterSpacing: form.password && !showPassword ? 3 : 0,
-        }]} numberOfLines={1}>
-          {form.password
-            ? showPassword ? form.password : '●'.repeat(Math.min(form.password.length, 15))
-            : t('register.passwordAutoPlaceholder') ?? 'Generada automáticamente'}
-        </Text>
-        {form.password && (
-          <TouchableOpacity onPress={() => setShowPassword(v => !v)} style={s.eyeBtn}>
-            <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={18} color={muted} />
-          </TouchableOpacity>
-        )}
+        <TextInput
+          style={[s.input, { color: text }] as any}
+          value={form.password}
+          onChangeText={v => setField('password', v)}
+          placeholder={t('register.passwordPlaceholder') ?? 'Contraseña'}
+          placeholderTextColor={isDark ? '#5A7258' : '#AAAAAA'}
+          secureTextEntry={!showPassword}
+          autoCapitalize="none"
+          autoCorrect={false}
+          onFocus={() => setFocused('password')}
+          onBlur={() => setFocused(null)}
+        />
+        <TouchableOpacity onPress={() => setShowPassword(v => !v)} style={s.eyeBtn}>
+          <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={18} color={muted} />
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity
-        onPress={handleGeneratePassword}
-        style={[s.generateBtn, { borderColor: theme.primary, backgroundColor: theme.primary + '12' }]}
-        activeOpacity={0.8}
-      >
-        <Ionicons name="refresh-outline" size={16} color={theme.primary} />
-        <Text style={[s.generateBtnText, { color: theme.primary }]}>
-          {passwordCopied
-            ? (t('register.passwordCopied') ?? '¡Copiada al portapapeles!')
-            : (t('register.generatePassword') ?? 'Generar contraseña segura')}
-        </Text>
-        {passwordCopied && <Ionicons name="checkmark-circle" size={16} color={theme.primary} />}
-      </TouchableOpacity>
       <View style={[s.hintBox, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#F5F5F5' }]}>
         <Text style={[s.hintBoxText, { color: muted }]}>{t('register.passwordHint')}</Text>
       </View>
-      {errors.password ? <Text style={s.errorText}>{errors.password}</Text> : null}
+      {errors.password ? <Text style={s.errorText}>{errors.password}</Text>
+        : hints.password ? <Text style={[s.hintText, { color: hintColor('password') }]}>{hints.password}</Text>
+        : null}
     </View>
   );
+
+  // ── CAMPO CONFIRMAR CONTRASEÑA ────────────────
+  const fieldConfirmPassword = (
+    <View style={s.fieldGroup}>
+      <Text style={[s.label, { color: text }]}>
+        {t('register.confirmPassword') ?? 'Confirmar contraseña'}
+      </Text>
+      <View style={[s.inputWrap, {
+        backgroundColor: inputBg,
+        borderColor: errors.confirmPassword ? errorColor : focused === 'confirmPassword' ? activeBorder : inputBorder,
+      }]}>
+        <Ionicons name="lock-closed-outline" size={18} color={muted} />
+        <TextInput
+          style={[s.input, { color: text }] as any}
+          value={confirmPassword}
+          onChangeText={v => {
+            setConfirmPassword(v);
+            clearError('confirmPassword');
+          }}
+          placeholder={t('register.confirmPasswordPlaceholder') ?? 'Confirmar contraseña'}
+          placeholderTextColor={isDark ? '#5A7258' : '#AAAAAA'}
+          secureTextEntry={!showConfirmPassword}
+          autoCapitalize="none"
+          autoCorrect={false}
+          onFocus={() => setFocused('confirmPassword')}
+          onBlur={() => setFocused(null)}
+        />
+        <TouchableOpacity onPress={() => setShowConfirmPassword(v => !v)} style={s.eyeBtn}>
+          <Ionicons name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'} size={18} color={muted} />
+        </TouchableOpacity>
+      </View>
+      {errors.confirmPassword
+        ? <Text style={s.errorText}>{errors.confirmPassword}</Text>
+        : confirmPassword && confirmPassword === form.password
+          ? <Text style={[s.hintText, { color: theme.primary }]}>✓</Text>
+          : null}
+    </View>
+  );
+  // ─────────────────────────────────────────────
 
   const fieldBirthdate = (
     <View style={s.fieldGroup}>
@@ -683,10 +698,20 @@ export default function RegisterScreen() {
                 <Text style={[s.sectionTitle, { color: theme.primary }]}>{t('register.sections.security')}</Text>
               </View>
               {isWide ? (
-                <View style={s.row}><View style={s.col}>{fieldPassword}</View><View style={s.col}>{fieldBirthdate}</View></View>
+                <>
+                  <View style={s.row}>
+                    <View style={s.col}>{fieldPassword}</View>
+                    <View style={s.col}>{fieldConfirmPassword}</View>
+                  </View>
+                  <View style={s.row}>
+                    <View style={s.col}>{fieldBirthdate}</View>
+                    <View style={s.col} />
+                  </View>
+                </>
               ) : (
                 <>
                   {fieldPassword}
+                  {fieldConfirmPassword}
                   <View style={[s.sectionHeader, { borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)' }]}>
                     <Ionicons name="calendar-outline" size={13} color={theme.primary} />
                     <Text style={[s.sectionTitle, { color: theme.primary }]}>{t('register.sections.other')}</Text>
@@ -756,7 +781,6 @@ export default function RegisterScreen() {
                     <Text style={[s.rightsBtnText, { color: hasRights === false ? '#FFFFFF' : muted }]}>{t('register.rightsNo')}</Text>
                   </TouchableOpacity>
 
-                  {/* ← Ahora abre modal en vez de navegar */}
                   <TouchableOpacity onPress={() => setShowRights(true)} style={s.rightsReadLink}>
                     <Text style={[s.rightsReadText, { color: linkColor }]}>{t('register.rightsRead')}</Text>
                   </TouchableOpacity>
@@ -835,8 +859,6 @@ const s = StyleSheet.create({
   dropText:   { fontSize: 15 },
   validateBtn:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 44, borderRadius: 10, borderWidth: 1.2, marginBottom: 4, paddingHorizontal: 12 },
   validateBtnText: { fontSize: 13, fontWeight: '700', textAlign: 'center' },
-  generateBtn:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 44, borderRadius: 10, borderWidth: 1.2, marginTop: 8, marginBottom: 4, paddingHorizontal: 12 },
-  generateBtnText: { fontSize: 13, fontWeight: '700' },
   hintBox:     { borderRadius: 8, padding: 10, marginTop: 4, marginBottom: 2 },
   hintBoxText: { fontSize: 11, lineHeight: 16, textAlign: 'center' },
   consentCard:   { borderRadius: 14, borderWidth: 1, padding: 16, marginTop: 6, marginBottom: 4 },

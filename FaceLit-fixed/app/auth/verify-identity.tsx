@@ -177,7 +177,7 @@ export default function VerifyIdentityScreen() {
 
 const styles = StyleSheet.create({
   gradient:          { flex: 1 },
-  safe:              { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 },
+  safe:              { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 15 },
   backgroundArcTop: {
     position: 'absolute', width: 300, height: 420,
     right: -120, top: -90, borderRadius: 200,
@@ -187,8 +187,8 @@ const styles = StyleSheet.create({
     left: -120, bottom: -30, borderRadius: 180,
   },
   card: {
-    width: '100%', maxWidth: 460, borderRadius: 26,
-    paddingHorizontal: 24, paddingVertical: 28,
+    width: '100%', maxWidth: 750, borderRadius: 26,
+    paddingHorizontal: 40, paddingVertical: 60,
     shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.18,
     shadowRadius: 18, elevation: 8,
   },

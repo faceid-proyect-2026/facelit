@@ -1,11 +1,22 @@
+// ─────────────────────────────────────────────
+//  app/_layout.tsx
+//  Fix: agrega I18nextProvider para que
+//  useTranslation() detecte cambios de idioma
+// ─────────────────────────────────────────────
+import { I18nProvider } from '@/shared/contexts/I18nContext';
+import { ThemeProvider, useTheme } from '@/shared/contexts/ThemeContext';
+import i18n from '@/shared/i18n/index';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { View, StyleSheet } from 'react-native';
+import { I18nextProvider } from 'react-i18next';
+import { StyleSheet, View } from 'react-native';
 
-export default function RootLayout() {
+function RootLayoutInner() {
+  const { theme } = useTheme();
+
   return (
-    <View style={styles.root}>
-      <StatusBar style="light" />
+    <View style={[s.root, { backgroundColor: theme.background }]}>
+      <StatusBar style={theme.statusBar} />
       <Stack
         screenOptions={{
           headerShown: false,
@@ -14,26 +25,34 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="index" />
-        <Stack.Screen name="login" />
-        <Stack.Screen name="register" />
-        <Stack.Screen name="rights" />
-        <Stack.Screen name="privacy-notice" />
-        <Stack.Screen name="minor-consent" />
-        <Stack.Screen name="teenager-registration" />
-        <Stack.Screen name="registration-success" />
-        <Stack.Screen name="password-recovery" />
-        <Stack.Screen name="token-sent" />
-        <Stack.Screen name="verify-identity" />
-        <Stack.Screen name="new-password" />
-        <Stack.Screen name="password-reset-done" />
+        <Stack.Screen name="auth/login" />
+        <Stack.Screen name="auth/register" />
+        <Stack.Screen name="auth/email-validation" />
+        <Stack.Screen name="auth/password-recovery" />
+        <Stack.Screen name="auth/verify-identity" />
+        <Stack.Screen name="auth/new-password" />
+        <Stack.Screen name="auth/password-reset-done" />
+        <Stack.Screen name="auth/teenager-registration" />
+        <Stack.Screen name="auth/minor-consent" />
+        <Stack.Screen name="auth/privacy-notice" />
+        <Stack.Screen name="admin" options={{ animation: 'fade' }} />
       </Stack>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: '#050505',
-  },
+export default function RootLayout() {
+  return (
+    <I18nextProvider i18n={i18n}>
+      <ThemeProvider>
+        <I18nProvider>
+          <RootLayoutInner />
+        </I18nProvider>
+      </ThemeProvider>
+    </I18nextProvider>
+  );
+}
+
+const s = StyleSheet.create({
+  root: { flex: 1 },
 });

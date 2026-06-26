@@ -22,8 +22,8 @@ const en = {
   landing: {
     contactTitle:    'Contact',
     contactText:     'Support, project information, or help with your account.',
-    contactEmail:    'support@facelit.com',
-    contactPhone:    '+57 300 000 0000',
+    contactEmail:    'facelit.system@gmail.com',
+    contactPhone:    '+57 3299287683',
     contactLocation: 'SENA — Colombia',
     footerPrivacy:   'Privacy',
     footerRights:    'Rights',
